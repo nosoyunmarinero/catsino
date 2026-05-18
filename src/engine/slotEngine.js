@@ -1,4 +1,4 @@
-import { REEL_STRIPS, PAYLINES, PAYTABLE, SYMBOLS } from './constants';
+import { REEL_STRIPS, PAYLINES, PAYTABLE, SLOT_BALANCE_CONFIG, SYMBOLS } from './constants.js';
 
 export const generateSpinPositions = () => {
   return REEL_STRIPS.map(strip => Math.floor(Math.random() * strip.length));
@@ -82,41 +82,42 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
   let triggerBonus = false;
   let freeSpinsWon = 0;
 
-  if (scatterCount >= 3) {
-    scatterPayout = betPerLine * activeLinesCount * (scatterCount === 3 ? 5 : scatterCount === 4 ? 20 : 100);
-    totalPayout += scatterPayout;
-    triggerBonus = true;
-    
-    if (scatterCount === 3) freeSpinsWon = 10;
-    else if (scatterCount === 4) freeSpinsWon = 15;
-    else if (scatterCount >= 5) freeSpinsWon = 25; // Cubre 5 o más en la pantalla gigante
+  if (scatterCount >= SLOT_BALANCE_CONFIG.scatter.triggerCount) {
+    const rewardKey = scatterCount >= 5 ? 5 : scatterCount;
+    const reward = SLOT_BALANCE_CONFIG.scatter.rewards[rewardKey];
 
-    winningLines.push({
-      lineId: 'SCATTER',
-      matchCount: scatterCount,
-      payout: scatterPayout,
-      coords: scatterCoords
-    });
+    if (reward) {
+      scatterPayout = betPerLine * activeLinesCount * reward.payoutMultiplier;
+      totalPayout += scatterPayout;
+      triggerBonus = true;
+      freeSpinsWon = reward.freeSpins;
+
+      winningLines.push({
+        lineId: 'SCATTER',
+        matchCount: scatterCount,
+        payout: scatterPayout,
+        coords: scatterCoords
+      });
+    }
   }
 
   // 3. Mecánica de Símbolos Multiplicadores Físicos en la pantalla de 5x5
-  let multiplierSum = 0;
+  const multiplierValues = [];
   const multiplierCoords = [];
 
   for (let r = 0; r < 5; r++) {
     for (let c = 0; c < 5; c++) {
       const symbol = matrix[r][c];
       if (symbol && symbol.type === 'MULTIPLIER') {
-        // Sumamos directamente los valores de los multiplicadores (x2 + x3 = x5)
         const val = Number(symbol.value) || 0;
-        multiplierSum += val; 
+        if (val > 0) multiplierValues.push(val);
         multiplierCoords.push([r, c]);
       }
     }
   }
 
-  // Si no hay multiplicadores en pantalla, el multiplicador base es 1
-  const activeMultiplier = multiplierSum > 0 ? multiplierSum : 1;
+  // En producción aplicamos solo el multiplicador visible más alto para evitar picos de pago.
+  const activeMultiplier = multiplierValues.length > 0 ? Math.max(...multiplierValues) : 1;
   const finalMultiplierDisplay = activeMultiplier;
 
   // El multiplicador físico aplica solo si anotaste ganancias válidas en el tiro

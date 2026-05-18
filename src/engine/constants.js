@@ -1,3 +1,5 @@
+import bmoImage from '../assets/bmo.jpg';
+
 // 1. CONFIGURACIÓN DE LOS SÍMBOLOS PERSONALIZADOS CON TUS LINKS
 export const SYMBOLS = {
   meme_cat_1:  { id: 'meme_cat_1',  name: 'Nyan Surf',    label: 'https://media1.tenor.com/m/XOSOCjqXcNIAAAAC/surfing-nyan-cat.gif' },
@@ -5,6 +7,7 @@ export const SYMBOLS = {
   meme_cat_3:  { id: 'meme_cat_3',  name: 'Gato Salto',   label: 'https://media.tenor.com/gjTjxUCoP3sAAAAj/jumping-gatito.gif' },
   meme_cat_4:  { id: 'meme_cat_4',  name: 'Gato Clásico', label: 'https://media1.tenor.com/m/YR1hxyktKYYAAAAC/cat.gif' },
   meme_cat_5:  { id: 'meme_cat_5',  name: 'Gato Spin',    label: 'https://media.tenor.com/Fl86HERrwRoAAAAi/oiiai-cat-spinning-cat.gif' },
+  bmo:         { id: 'bmo',         name: 'BMO',          label: bmoImage },
   meme_cat_6:  { id: 'meme_cat_6',  name: 'Gato Dance',   label: 'https://media.tenor.com/s7DaT_WpYA0AAAA1/gato-bailando.webp' },
   meme_cat_7:  { id: 'meme_cat_7',  name: 'Gato Alien',   label: 'https://media.tenor.com/-TO4hXAw_MQAAAAj/alien-alien-cat.gif' },
   meme_cat_8:  { id: 'meme_cat_8',  name: 'Gato Tongue',  label: 'https://media.tenor.com/WlJsOVX2lysAAAAi/cat-tongue-cat.gif' },
@@ -27,6 +30,7 @@ export const PAYTABLE = {
   meme_cat_8:  { 3: 3,   4: 8,    5: 25 },
   meme_cat_7:  { 3: 5,   4: 12,   5: 40 },
   meme_cat_6:  { 3: 8,   4: 20,   5: 75 },
+  bmo:         { 3: 10,  4: 28,   5: 110 },
   meme_cat_5:  { 3: 12,  4: 35,   5: 150 },
   meme_cat_4:  { 3: 20,  4: 60,   5: 300 },
   meme_cat_3:  { 3: 35,  4: 100,  5: 600 },
@@ -60,18 +64,32 @@ export const PAYLINES = [
   { id: 20, coords: [[0,0], [4,1], [0,2], [4,3], [0,4]], color: '#c0392b' }, // Patrón en X alternado
 ];
 
+export const SLOT_BALANCE_CONFIG = {
+  scatter: {
+    triggerCount: 4,
+    rewards: {
+      4: { payoutMultiplier: 10, freeSpins: 8 },
+      5: { payoutMultiplier: 40, freeSpins: 12 }
+    }
+  },
+  multipliers: {
+    strategy: 'highest_visible',
+    availableValues: [2, 5]
+  }
+};
+
 // 4. CINTAS VIRTUALES (REEL STRIPS) - Optimizadas para 5 símbolos visibles por columna
 const S = SYMBOLS;
 export const REEL_STRIPS = [
-  [S.meme_cat_9, S.meme_cat_8, S.MULT_X2, S.meme_cat_9, S.meme_cat_7, S.meme_cat_8, S.meme_cat_6, S.meme_cat_9, S.meme_cat_5, S.meme_cat_7, S.SCATTER, S.meme_cat_8, S.meme_cat_6, S.meme_cat_4, S.meme_cat_9, S.meme_cat_3, S.meme_cat_7, S.meme_cat_2, S.WILD, S.meme_cat_9, S.meme_cat_8, S.meme_cat_6, S.meme_cat_1, S.meme_cat_9, S.meme_cat_7, S.meme_cat_8],
+  [S.meme_cat_9, S.meme_cat_8, S.meme_cat_7, S.meme_cat_9, S.bmo, S.meme_cat_8, S.meme_cat_6, S.meme_cat_9, S.meme_cat_5, S.meme_cat_7, S.SCATTER, S.meme_cat_8, S.meme_cat_6, S.meme_cat_4, S.meme_cat_9, S.meme_cat_3, S.meme_cat_7, S.meme_cat_2, S.WILD, S.meme_cat_9, S.meme_cat_8, S.meme_cat_6, S.meme_cat_1, S.meme_cat_9, S.meme_cat_7, S.bmo],
   
-  [S.meme_cat_8, S.meme_cat_9, S.meme_cat_7, S.meme_cat_8, S.meme_cat_9, S.meme_cat_6, S.meme_cat_7, S.MULT_X3, S.meme_cat_5, S.meme_cat_8, S.SCATTER, S.meme_cat_6, S.meme_cat_9, S.meme_cat_4, S.meme_cat_7, S.meme_cat_3, S.meme_cat_8, S.meme_cat_2, S.WILD, S.meme_cat_9, S.meme_cat_6, S.meme_cat_7, S.meme_cat_8, S.meme_cat_1, S.meme_cat_9, S.meme_cat_5],
+  [S.meme_cat_8, S.meme_cat_9, S.meme_cat_7, S.bmo, S.meme_cat_9, S.meme_cat_6, S.meme_cat_7, S.meme_cat_5, S.meme_cat_5, S.meme_cat_8, S.SCATTER, S.meme_cat_6, S.meme_cat_9, S.meme_cat_4, S.meme_cat_7, S.meme_cat_3, S.bmo, S.meme_cat_2, S.WILD, S.meme_cat_9, S.meme_cat_6, S.meme_cat_7, S.meme_cat_8, S.meme_cat_1, S.meme_cat_9, S.meme_cat_5],
   
-  [S.meme_cat_7, S.meme_cat_9, S.meme_cat_8, S.meme_cat_7, S.meme_cat_9, S.meme_cat_6, S.meme_cat_8, S.meme_cat_5, S.meme_cat_1, S.meme_cat_7, S.SCATTER, S.meme_cat_6, S.MULT_X5, S.meme_cat_8, S.meme_cat_4, S.meme_cat_9, S.meme_cat_3, S.meme_cat_7, S.WILD, S.meme_cat_2, S.meme_cat_9, S.meme_cat_8, S.meme_cat_6, S.meme_cat_7, S.meme_cat_5],
+  [S.meme_cat_7, S.meme_cat_9, S.meme_cat_8, S.meme_cat_7, S.bmo, S.meme_cat_6, S.meme_cat_8, S.meme_cat_5, S.meme_cat_1, S.meme_cat_7, S.SCATTER, S.meme_cat_6, S.MULT_X5, S.meme_cat_8, S.meme_cat_4, S.meme_cat_9, S.meme_cat_3, S.bmo, S.WILD, S.meme_cat_2, S.meme_cat_9, S.meme_cat_8, S.meme_cat_6, S.meme_cat_7, S.meme_cat_5],
   
-  [S.meme_cat_9, S.meme_cat_8, S.meme_cat_7, S.meme_cat_9, S.meme_cat_8, S.meme_cat_6, S.meme_cat_5, S.meme_cat_8, S.SCATTER, S.meme_cat_7, S.meme_cat_4, S.meme_cat_9, S.meme_cat_1, S.meme_cat_3, S.WILD, S.MULT_X10, S.meme_cat_8, S.meme_cat_2, S.meme_cat_9, S.meme_cat_6, S.meme_cat_7, S.meme_cat_8, S.meme_cat_9],
+  [S.meme_cat_9, S.meme_cat_8, S.meme_cat_7, S.meme_cat_9, S.meme_cat_8, S.bmo, S.meme_cat_5, S.meme_cat_8, S.SCATTER, S.meme_cat_7, S.meme_cat_4, S.meme_cat_9, S.meme_cat_1, S.meme_cat_3, S.WILD, S.meme_cat_8, S.bmo, S.meme_cat_2, S.meme_cat_9, S.meme_cat_6, S.meme_cat_7, S.meme_cat_8, S.meme_cat_9],
   
-  [S.meme_cat_8, S.meme_cat_9, S.meme_cat_7, S.meme_cat_8, S.meme_cat_6, S.meme_cat_9, S.meme_cat_5, S.meme_cat_7, S.SCATTER, S.meme_cat_8, S.meme_cat_4, S.WILD, S.meme_cat_3, S.meme_cat_9, S.meme_cat_2, S.MULT_X2, S.meme_cat_8, S.meme_cat_1, S.meme_cat_6, S.meme_cat_7, S.meme_cat_9, S.meme_cat_8]
+  [S.meme_cat_8, S.meme_cat_9, S.meme_cat_7, S.bmo, S.meme_cat_6, S.meme_cat_9, S.meme_cat_5, S.meme_cat_7, S.SCATTER, S.meme_cat_8, S.meme_cat_4, S.WILD, S.meme_cat_3, S.meme_cat_9, S.meme_cat_2, S.MULT_X2, S.bmo, S.meme_cat_1, S.meme_cat_6, S.meme_cat_7, S.meme_cat_9, S.meme_cat_8]
 ];
 
 // Subimos las apuestas por defecto al expandir las líneas a 20 por tiro

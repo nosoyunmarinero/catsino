@@ -1,9 +1,15 @@
-import React from 'react';
-import { PAYTABLE, SYMBOLS } from '../../../engine/constants';
+import { PAYTABLE, SLOT_BALANCE_CONFIG, SYMBOLS } from '../../../engine/constants.js';
 import { Button } from '../../ui/Button';
 
 export const PaytableModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
+
+  const scatterTriggerCount = SLOT_BALANCE_CONFIG.scatter.triggerCount;
+  const scatter4Reward = SLOT_BALANCE_CONFIG.scatter.rewards[4];
+  const scatter5Reward = SLOT_BALANCE_CONFIG.scatter.rewards[5];
+  const multiplierValues = SLOT_BALANCE_CONFIG.multipliers.availableValues
+    .map((value) => `x${value}`)
+    .join(' o ');
 
   return (
     // Capa oscura que bloquea el fondo de la pantalla
@@ -99,14 +105,14 @@ export const PaytableModal = ({ isOpen, onClose }) => {
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
             <img src={SYMBOLS.SCATTER.label} alt="SCATTER" style={{ width: '28px', height: '28px', objectFit: 'cover', borderRadius: '4px' }} />
             <p style={{ fontSize: '0.85rem', margin: 0 }}>
-              <strong>SCATTER (Gato Bonus):</strong> 3 o más en cualquier posición otorgan monedas y activan la ronda de <strong>Giros Gratis</strong> (3 = 10 FS, 4 = 15 FS, 5 = 25 FS).
+              <strong>SCATTER (Gato Bonus):</strong> {scatterTriggerCount} o más en cualquier posición activan la ronda de <strong>Giros Gratis</strong> ({`4 = ${scatter4Reward.freeSpins} FS, 5 = ${scatter5Reward.freeSpins} FS`}).
             </p>
           </div>
 
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px', marginTop: '8px' }}>
             <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>🔥</span>
             <p style={{ fontSize: '0.85rem', margin: 0, color: 'var(--gold)' }}>
-              <strong>Meme Multiplier:</strong> ¡Cualquier tiro ganador tiene un 25% de probabilidad de activar un multiplicador sorpresa de <strong>x2, x3, x5 o x10</strong> sobre el premio total!
+              <strong>Meme Multiplier:</strong> En producción solo aplica el multiplicador visible más alto del tiro ganador (<strong>{multiplierValues}</strong>) para mantener una volatilidad más controlada.
             </p>
           </div>
         </div>

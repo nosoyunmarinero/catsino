@@ -1,4 +1,3 @@
-import React from 'react';
 import '../../../styles/animations.css';
 
 export const ReelStrip = ({ symbolsColumn, isSpinning, colIndex, winningCoords }) => {
@@ -34,7 +33,12 @@ export const ReelStrip = ({ symbolsColumn, isSpinning, colIndex, winningCoords }
             coord => Array.isArray(coord) && coord[0] === rowIndex && coord[1] === colIndex
           );
 
-          const isImageUrl = typeof symbol?.label === 'string' && (symbol.label.startsWith('http://') || symbol.label.startsWith('https://'));
+          const isImageUrl = typeof symbol?.label === 'string' && (
+            symbol.label.startsWith('http://') ||
+            symbol.label.startsWith('https://') ||
+            symbol.label.startsWith('/') ||
+            symbol.label.startsWith('data:image/')
+          );
 
           return (
             <div
