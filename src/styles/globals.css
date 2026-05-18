@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@400;600;700&display=swap');
+
+:root {
+  --bg-casino: #0d2318;
+  --bg-mat: #1a3a2a;
+  --gold: #ffd700;
+  --gold-glow: #ffaa00;
+  --cream: #fffdd0;
+  --salmon: #ff91a4;
+  --dark: #111111;
+  
+  --font-display: 'Fredoka', sans-serif;
+  --font-ui: 'Nunito', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  background-color: var(--bg-casino);
+  color: var(--cream);
+  font-family: var(--font-ui);
+  overflow-x: hidden;
+  background-image: radial-gradient(circle, var(--bg-mat) 0%, var(--bg-casino) 100%);
+  min-height: 100vh;
+}
+
+h1, h2, h3, .font-casino {
+  font-family: var(--font-display);
+}
+
+/* Scrollbar estilo casino */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-casino);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 4px;
+}

@@ -1,0 +1,43 @@
+/* Efecto de desenfoque de movimiento combinado con traslación */
+.blur-motion {
+  filter: blur(3px);
+  transform: scaleY(1.05);
+}
+
+/* Animación de Giro Continuo Vertical */
+@keyframes spinLoop {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.reel-rolling-container {
+  animation: spinLoop 0.2s linear infinite;
+}
+
+/* Rebote de desaceleración realista (Snapping) */
+@keyframes reelStopBounce {
+  0% { transform: translateY(-15px); filter: blur(1px); }
+  50% { transform: translateY(6px); }
+  100% { transform: translateY(0); }
+}
+
+.reel-bounce {
+  animation: reelStopBounce 0.25s ease-out forwards;
+}
+
+/* Shake de la pantalla completa para Grandes Premios */
+@keyframes screenShake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-3px, 2px); }
+  40% { transform: translate(3px, -1px); }
+  60% { transform: translate(-2px, -2px); }
+  80% { transform: translate(2px, 1px); }
+}
+
+.big-win-shake {
+  animation: screenShake 0.4s ease-in-out infinite;
+}
