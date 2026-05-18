@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export const useCasinoStore = create(
+
+  
   persist(
     (set) => ({
       balance: 1000,

@@ -11,7 +11,7 @@ export const generateSpinPositions = () => {
  * Mapea las posiciones físicas a una matriz visible de 5 columnas x 3 filas
  */
 export const getResultMatrix = (positions) => {
-  const matrix = [[], [], []]; // 3 filas
+  const matrix = [[], [], []]; 
   
   for (let col = 0; col < 5; col++) {
     const strip = REEL_STRIPS[col];
@@ -26,25 +26,24 @@ export const getResultMatrix = (positions) => {
 };
 
 /**
- * Evalúa los aciertos basados en las paylines activas y calcula ganancias
+ * Evalúa los aciertos, calcula ganancias, Free Spins y Multiplicadores Sorpresa.
  */
 export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
   let totalPayout = 0;
   const winningLines = [];
 
-  // Filtrar solo las líneas de pago que el usuario activó
   const linesToEvaluate = PAYLINES.slice(0, activeLinesCount);
 
   linesToEvaluate.forEach(line => {
     const symbolsInLine = line.coords.map(([row, col]) => matrix[row][col]);
     
-    // Identificar el símbolo base de la línea (omitiendo WILDs iniciales)
+    // Identificar el símbolo base de la línea (omitiendo WILDs)
     let firstNonWild = symbolsInLine.find(s => s.id !== SYMBOLS.WILD.id);
     
-    // Si toda la línea es WILD, paga como el símbolo más alto disponible en la tabla
-    if (!firstNonWild) firstNonWild = SYMBOLS.CAT_NINJA;
+    // Si toda la línea es WILD, paga como el símbolo más alto (meme_cat_1)
+    if (!firstNonWild) firstNonWild = SYMBOLS.meme_cat_1;
     
-    // El Scatter no da premios de línea tradicionales en este modelo comercial básico
+    // El Scatter no da premios de línea tradicionales
     if (firstNonWild.id === SYMBOLS.SCATTER.id) return;
 
     let matchCount = 0;
@@ -53,11 +52,10 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
       if (current.id === firstNonWild.id || current.id === SYMBOLS.WILD.id) {
         matchCount++;
       } else {
-        break; // Detener conteo si se rompe la racha de izquierda a derecha
+        break; 
       }
     }
 
-    // Calcular si hay pago para este matchCount según la tabla de pagos
     if (matchCount >= 3) {
       const multiplier = PAYTABLE[firstNonWild.id]?.[matchCount] || 0;
       if (multiplier > 0) {
@@ -67,13 +65,13 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
           lineId: line.id,
           matchCount,
           payout: lineWin,
-          coords: line.coords.slice(0, matchCount) // Guardar coordenadas ganadoras para iluminar en UI
+          coords: line.coords.slice(0, matchCount) 
         });
       }
     }
   });
 
-  // Conteo especial de Scatters (da igual donde caigan en la matriz)
+  // Conteo especial de Scatters (Gato Bonus)
   let scatterCount = 0;
   const scatterCoords = [];
   for (let r = 0; r < 3; r++) {
@@ -87,10 +85,17 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
 
   let scatterPayout = 0;
   let triggerBonus = false;
+  let freeSpinsWon = 0;
+
   if (scatterCount >= 3) {
     scatterPayout = betPerLine * activeLinesCount * (scatterCount === 3 ? 5 : scatterCount === 4 ? 20 : 100);
     totalPayout += scatterPayout;
     triggerBonus = true;
+    
+    if (scatterCount === 3) freeSpinsWon = 10;
+    else if (scatterCount === 4) freeSpinsWon = 15;
+    else if (scatterCount === 5) freeSpinsWon = 25;
+
     winningLines.push({
       lineId: 'SCATTER',
       matchCount: scatterCount,
@@ -99,9 +104,19 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
     });
   }
 
+  // MECÁNICA MULTIPLIPLICADOR ALEATORIO
+  let activeMultiplier = 1;
+  if (totalPayout > 0 && Math.random() < 0.25) { // 25% probabilidad de activarse
+    const multiPool = [2, 3, 5, 10];
+    activeMultiplier = multiPool[Math.floor(Math.random() * multiPool.length)];
+    totalPayout = totalPayout * activeMultiplier;
+  }
+
   return {
     totalPayout,
     winningLines,
-    triggerBonus
+    triggerBonus,
+    freeSpinsWon,       
+    activeMultiplier    
   };
 };
