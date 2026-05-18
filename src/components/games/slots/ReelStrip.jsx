@@ -2,9 +2,7 @@ import React from 'react';
 import '../../../styles/animations.css';
 
 export const ReelStrip = ({ symbolsColumn, isSpinning, colIndex, winningCoords }) => {
-  // SOLUCIÓN AL BUG HIGH: Para que no haya saltos ni cambien los símbolos al frenar,
-  // la cinta visual se genera SIEMPRE combinando los símbolos de destino.
-  // Al mantener la misma estructura base durante el giro y el frenado, los iconos no cambian.
+  // Mantenemos la cinta visual idéntica para evitar saltos gráficos
   const visualStrip = isSpinning
     ? [...symbolsColumn, ...symbolsColumn, ...symbolsColumn, ...symbolsColumn]
     : symbolsColumn;
@@ -31,9 +29,11 @@ export const ReelStrip = ({ symbolsColumn, isSpinning, colIndex, winningCoords }
         }}
       >
         {visualStrip.map((symbol, rowIndex) => {
-          // Detectar si este símbolo específico (mapeado al índice real 0-2) es parte de una línea ganadora
-          const isWinningSymbol = !isSpinning && winningCoords?.some(
-            coord => coord.row === (rowIndex % 3) && coord.col === colIndex
+          // SOLUCIÓN AL HIGHLIGHT:
+          // Las coordenadas de slotEngine.js vienen como [fila, columna] (un array de números).
+          // coord[0] es la fila (row) y coord[1] es la columna (col).
+          const isWinningSymbol = !isSpinning && winningCoords && winningCoords.some(
+            coord => Array.isArray(coord) && coord[0] === rowIndex && coord[1] === colIndex
           );
 
           return (
@@ -49,10 +49,11 @@ export const ReelStrip = ({ symbolsColumn, isSpinning, colIndex, winningCoords }
                 fontSize: '2.3rem',
                 borderRadius: '8px',
                 flexShrink: 0,
-                background: isWinningSymbol ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255,255,255,0.02)',
-                border: isWinningSymbol ? '2px solid var(--gold)' : 'none',
-                boxShadow: isWinningSymbol ? '0 0 10px var(--gold)' : 'none',
-                transition: 'all 0.2s ease'
+                background: isWinningSymbol ? 'rgba(255, 215, 0, 0.25)' : 'rgba(255,255,255,0.02)',
+                border: isWinningSymbol ? '2px solid var(--gold)' : '2px solid transparent',
+                boxShadow: isWinningSymbol ? '0 0 12px var(--gold), inset 0 0 8px rgba(255,215,0,0.3)' : 'none',
+                transform: isWinningSymbol ? 'scale(1.03)' : 'scale(1)',
+                transition: 'all 0.2s ease-in-out'
               }}
             >
               <div>{symbol?.label || '🐟'}</div>

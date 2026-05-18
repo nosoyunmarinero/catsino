@@ -43,15 +43,24 @@ export const useSlotMachine = () => {
         return next;
       });
 
+      // SOLUCIÓN AL BUG HIGH: En el instante exacto en que este rodillo frena,
+      // actualizamos su columna correspondiente en la matriz visual para que
+      // renderice los nuevos símbolos del RNG sin alterar los rodillos que aún giran.
+      setDisplayMatrix(prevMatrix => {
+        const nextMatrix = prevMatrix.map(row => [...row]); // Clonar matriz
+        for (let rowIndex = 0; rowIndex < 3; rowIndex++) {
+          nextMatrix[rowIndex][i] = targetMatrix[rowIndex][i];
+        }
+        return nextMatrix;
+      });
+
+      // Apagar animación de este rodillo en específico
       setSpinning(prev => {
         const next = [...prev];
         next[i] = false;
         return next;
       });
     }
-
-    // Fijar matriz final calculada en la UI
-    setDisplayMatrix(targetMatrix);
     
     // Aplicar ganancias si existen
     if (evaluation.totalPayout > 0) {
