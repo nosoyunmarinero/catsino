@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/layout/Header';
 import { GameSelector } from './components/layout/GameSelector';
-import { SlotMachine } from './components/games/slots/SlotMachine';
+import { SlotMachine } from './components/games/slots/components/SlotMachine';
 import { useCasinoStore } from './store/useCasinoStore';
 import './styles/globals.css';
 

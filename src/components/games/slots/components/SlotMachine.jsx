@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { useSlotMachine } from "../../../hooks/useSlotMachine";
-import { useAutobet } from "../../../hooks/useAutobet";
-import { useCasinoStore } from "../../../store/useCasinoStore";
+import { useSlotMachine } from "../hooks/useSlotMachine";
+import { useAutobet } from "../hooks/useAutobet";
+import { useCasinoStore } from "../../../../store/useCasinoStore";
 import { ReelStrip } from "./ReelStrip";
 import { PaylineDisplay } from "./PaylineDisplay";
 import { WinOverlay } from "./WinOverlay";
 import { PaytableModal } from "./PaytableModal";
-import { Button } from "../../ui/Button";
-import { PRESET_BETS } from "../../../engine/constants";
+import { Button } from "../../../ui/Button";
+import { PRESET_BETS } from "../engine/slotConstants";
 
 export const SlotMachine = ({ onBack }) => {
   const { balance, turboMode, setTurboMode, claimFreeCoins, freeSpinsLeft } =

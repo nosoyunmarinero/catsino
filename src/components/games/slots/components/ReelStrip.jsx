@@ -1,5 +1,5 @@
 import React from "react";
-import "../../../styles/animations.css";
+import "../../../../styles/animations.css";
 
 export const ReelStrip = ({
   symbolsColumn,

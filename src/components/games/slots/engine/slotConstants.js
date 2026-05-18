@@ -1,4 +1,4 @@
-import bmoImage from '../assets/bmo.jpg';
+import bmoImage from '../../../../assets/bmo.jpg';
 
 // 1. CONFIGURACIÓN DE LOS SÍMBOLOS PERSONALIZADOS CON TUS LINKS
 export const SYMBOLS = {

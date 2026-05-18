@@ -1,5 +1,5 @@
-import { PAYTABLE, SLOT_BALANCE_CONFIG, SYMBOLS } from '../../../engine/constants.js';
-import { Button } from '../../ui/Button';
+import { PAYTABLE, SLOT_BALANCE_CONFIG, SYMBOLS } from '../engine/slotConstants.js';
+import { Button } from '../../../ui/Button';
 
 export const PaytableModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;

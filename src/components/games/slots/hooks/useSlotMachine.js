@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
-import { useCasinoStore } from "../store/useCasinoStore";
+import { useCasinoStore } from "../../../../store/useCasinoStore";
 import {
   generateSpinPositions,
   getResultMatrix,
   evaluateMatrix,
 } from "../engine/slotEngine";
-import { SYMBOLS } from "../engine/constants";
+import { SYMBOLS } from "../engine/slotConstants";
 
 export const useSlotMachine = () => {
   const {

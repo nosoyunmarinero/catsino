@@ -1,5 +1,5 @@
 import React from 'react';
-import { PAYLINES } from '../../../engine/constants';
+import { PAYLINES } from '../engine/slotConstants';
 
 export const PaylineDisplay = ({ activeLinesCount }) => {
   return (

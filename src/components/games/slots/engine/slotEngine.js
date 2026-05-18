@@ -1,4 +1,4 @@
-import { REEL_STRIPS, PAYLINES, PAYTABLE, SLOT_BALANCE_CONFIG, SYMBOLS } from './constants.js';
+import { REEL_STRIPS, PAYLINES, PAYTABLE, SLOT_BALANCE_CONFIG, SYMBOLS } from './slotConstants.js';
 
 export const generateSpinPositions = () => {
   return REEL_STRIPS.map(strip => Math.floor(Math.random() * strip.length));
