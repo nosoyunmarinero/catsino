@@ -1,8 +1,3 @@
-npm run dev
-   Aquí tienes el archivo `README.md` completamente actualizado. He adaptado la documentación para reflejar las últimas mejoras que implementamos: la corrección en la lógica de los multiplicadores (el bug del x4 al x5), la optimización de micro-interfaces para el botón Turbo y el rediseño de la cuadrícula de 5x5 con iconos gigantes y nombres flotantes estilo badge.
-
-Reemplaza el contenido de tu archivo `README.md` con el siguiente bloque:
-```markdown
 # 🎰 Catsino: La Odisea de Gatoberto 🐈💼
 
 ¡Bienvenido a **Catsino**, un simulador de máquina tragamonedas (slot machine) web premium desarrollado en React! Sigue la historia de Gatoberto, un felino de oficina cansado de la rutina corporativa, mientras gira los rodillos en busca de su libertad financiera.
