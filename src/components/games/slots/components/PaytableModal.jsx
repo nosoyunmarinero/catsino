@@ -1,3 +1,4 @@
+// src/components/games/slots/components/PaytableModal.jsx
 import { PAYTABLE, SLOT_BALANCE_CONFIG, SYMBOLS } from '../engine/slotConstants.js';
 import { Button } from '../../../ui/Button';
 

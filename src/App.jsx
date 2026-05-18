@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/layout/Header';
 import { GameSelector } from './components/layout/GameSelector';

@@ -1,3 +1,4 @@
+// src/components/games/slots/components/WinOverlay.jsx
 import React, { useEffect } from "react";
 import confetti from "canvas-confetti";
 

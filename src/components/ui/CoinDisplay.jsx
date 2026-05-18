@@ -1,3 +1,4 @@
+// src/components/ui/CoinDisplay.jsx
 import React from 'react';
 
 export const CoinDisplay = ({ value, label = "🐟 Créditos" }) => {

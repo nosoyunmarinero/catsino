@@ -1,3 +1,4 @@
+<!-- README.md -->
 # 🎰 Catsino: La Odisea de Gatoberto 🐈💼
 
 ¡Bienvenido a **Catsino**, un simulador de máquina tragamonedas (slot machine) web premium desarrollado en React! Sigue la historia de Gatoberto, un felino de oficina cansado de la rutina corporativa, mientras gira los rodillos en busca de su libertad financiera.

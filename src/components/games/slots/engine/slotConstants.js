@@ -1,3 +1,4 @@
+// src/components/games/slots/engine/slotConstants.js
 import bmoImage from '../../../../assets/bmo.jpg';
 
 // 1. CONFIGURACIÓN DE LOS SÍMBOLOS PERSONALIZADOS CON TUS LINKS

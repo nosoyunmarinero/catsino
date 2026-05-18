@@ -1,3 +1,4 @@
+// src/store/useCasinoStore.js
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 

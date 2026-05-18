@@ -1,3 +1,4 @@
+// src/components/games/slots/components/SlotMachine.jsx
 import React, { useState, useEffect } from "react";
 import { useSlotMachine } from "../hooks/useSlotMachine";
 import { useAutobet } from "../hooks/useAutobet";

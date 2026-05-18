@@ -1,3 +1,4 @@
+// src/components/games/slots/hooks/useAutobet.js
 import { useState, useEffect, useRef } from 'react';
 
 export const useAutobet = (spinFunction, isSpinning, balance, totalBet) => {

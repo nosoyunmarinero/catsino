@@ -1,3 +1,4 @@
+// src/components/games/slots/components/ReelStrip.jsx
 import React from "react";
 import "../../../../styles/animations.css";
 
@@ -110,6 +111,7 @@ export const ReelStrip = ({
                 position: "relative",
                 boxSizing: "border-box",
                 padding: "4px",
+                animationDelay: isThisExploding ? "0s" : `${(4 - rowIndex) * 0.08}s`
               }}
             >
               <div

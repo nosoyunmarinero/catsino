@@ -1,3 +1,4 @@
+// src/components/games/slots/hooks/useSlotMachine.js
 import { useState, useCallback } from "react";
 import { useCasinoStore } from "../../../../store/useCasinoStore";
 import {
@@ -150,32 +151,50 @@ export const useSlotMachine = () => {
           freeSpinsWon: accumulatedFreeSpins,
         });
 
-        // ⏱️ RALENTIZADO: Tiempo para ver el highlight y la animación de explosión respirar
+        // ⏱️ TIEMPO DE EXPLOSIÓN: Esperamos a que la animación '.cell-exploding' (0.5s) se complete en el DOM
         await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 500 : 900)
+          setTimeout(resolve, turboMode ? 450 : 600)
         );
 
-        // 🌟 FIX CRÍTICO: Antes de mover la matriz o calcular la gravedad,
-        // limpiamos las líneas ganadoras de `winData` para APAGAR los bordes dorados en seco.
-        setWinData((prev) => (prev ? { ...prev, winningLines: [] } : null));
+        // 2. DESAPARECER SÍMBOLOS: Forzamos un render intermedio vaciando las celdas afectadas
+        // Esto evita que un icono nuevo solape bruscamente al anterior en pleno estallido
+        setDisplayMatrix((prevMatrix) =>
+          prevMatrix.map((row, rIdx) =>
+            row.map((cell, cIdx) => {
+              const wasExploded = coordsToExplode.some(
+                ([er, ec]) => er === rIdx && ec === cIdx
+              );
+              return wasExploded
+                ? { label: "", name: "empty", id: `empty-${rIdx}-${cIdx}` }
+                : cell;
+            })
+          )
+        );
+
+        // Apagamos las coordenadas de explosión para limpiar las clases CSS reactivas
         setExplodingCoords([]);
 
-        // Pausa milimétrica para romper el batching de React y asegurar que el DOM apagó el highlight
-        await new Promise((resolve) => setTimeout(resolve, 80));
+        // Pequeño respiro visual con el tablero vacío en las zonas premiadas antes de que la gravedad tire todo
+        await new Promise((resolve) =>
+          setTimeout(resolve, turboMode ? 60 : 150)
+        );
 
-        // 2. CONTROL DE FOTOGRAMAS: Procesar gravedad con los bordes ya apagados
+        // 3. PROCESAR GRAVEDAD: Calculamos el corrimiento real de los rodillos
         const updatedMatrix = applyCascadeGravity(
           currentTempMatrix,
           coordsToExplode
         );
 
-        // Renderizar los nuevos símbolos que caen (dispara .cell-cascading)
+        // Apagamos los marcos dorados de las líneas ganadoras al momento del desplome
+        setWinData((prev) => (prev ? { ...prev, winningLines: [] } : null));
+
+        // Inyectamos la matriz con los nuevos elementos (Activa la animación '.cell-cascading')
         setDisplayMatrix(updatedMatrix);
         currentTempMatrix = updatedMatrix;
 
-        // ⏱️ RALENTIZADO: Tiempo de espera para que se disfrute la caída suave y el rebote elástico
+        // ⏱️ TIEMPO DE CAÍDA: Esperamos a que termine de ejecutarse '.cascade-fall' junto con sus rebotes
         await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 600 : 1100)
+          setTimeout(resolve, turboMode ? 650 : 1200)
         );
       } else {
         keepCascading = false;

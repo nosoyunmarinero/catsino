@@ -1,3 +1,4 @@
+/* src/styles/animations.css */
 /* Efecto de desenfoque de movimiento combinado con traslación */
 .blur-motion {
   filter: blur(3px);

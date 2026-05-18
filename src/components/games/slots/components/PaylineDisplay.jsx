@@ -1,3 +1,4 @@
+// src/components/games/slots/components/PaylineDisplay.jsx
 import React from 'react';
 import { PAYLINES } from '../engine/slotConstants';
 

@@ -1,3 +1,4 @@
+// src/components/games/slots/engine/slotEngine.js
 import { REEL_STRIPS, PAYLINES, PAYTABLE, SLOT_BALANCE_CONFIG, SYMBOLS } from './slotConstants.js';
 
 export const generateSpinPositions = () => {

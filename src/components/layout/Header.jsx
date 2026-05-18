@@ -1,3 +1,4 @@
+// src/components/layout/Header.jsx
 import React from 'react';
 import { useCasinoStore } from '../../store/useCasinoStore';
 import { CoinDisplay } from '../ui/CoinDisplay';
