@@ -42,3 +42,61 @@
 .big-win-shake {
   animation: screenShake 0.4s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   🌟 SECCIÓN DE ANIMACIONES CASCADA OPTIMIZADAS (SMOOTH & FÍSICA REAL)
+   ========================================================================== */
+
+/* 1. EXPLOSIÓN: Efecto pop orgánico, se expande suave, brilla y se desvanece uniformemente */
+@keyframes cat-explode {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(1.2);
+    filter: brightness(1.8) drop-shadow(0 0 15px var(--gold));
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.4);
+    filter: brightness(2) drop-shadow(0 0 0px transparent);
+    opacity: 0;
+  }
+}
+
+/* 2. CAÍDA: Simula aceleración por gravedad real con un rebote elástico al tocar el fondo */
+@keyframes cascade-fall {
+  0% {
+    transform: translateY(
+      -250px
+    ); /* Viene desde más arriba para simular la caída libre */
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-12px); /* Pequeño rebote hacia arriba */
+  }
+  90% {
+    transform: translateY(3px); /* Asentamiento final secundario */
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Clases optimizadas con tiempos controlados */
+.cell-exploding {
+  animation: cat-explode 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.cell-cascading {
+  /* Usamos un tiempo ligeramente mayor (0.6s) para que la desaceleración y el rebote se aprecien fluidos */
+  animation: cascade-fall 0.6s cubic-bezier(0.25, 1, 0.5, 1) backwards;
+}
