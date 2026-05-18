@@ -6,12 +6,53 @@ export const PaytableModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '600px' }}>
-        <h2 style={{ color: 'var(--gold)', textAlign: 'center', marginBottom: '15px' }}>🐾 Manual del Catsino</h2>
+    // Capa oscura que bloquea el fondo de la pantalla
+    <div 
+      className="modal-overlay" 
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999, // Se posiciona por encima de la Slot Machine
+        backdropFilter: 'blur(4px)',
+        padding: '20px',
+        boxSizing: 'border-box'
+      }}
+    >
+      {/* Contenedor físico de la ventana del manual */}
+      <div 
+        className="modal-content" 
+        onClick={(e) => e.stopPropagation()} 
+        style={{ 
+          maxWidth: '600px',
+          width: '100%',
+          background: '#2c1e14', // Fondo madera oscura a juego con el Catsino
+          border: '4px solid var(--gold)',
+          borderRadius: '20px',
+          maxHeight: '85vh', // Evita que se salga de pantallas pequeñas o laptops
+          overflowY: 'auto', // Si el contenido es largo, el scroll se genera SOLO dentro de la ventanita
+          padding: '25px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.6)',
+          boxSizing: 'border-box',
+          color: 'var(--cream)',
+          fontFamily: 'var(--font-ui)'
+        }}
+      >
+        <h2 style={{ color: 'var(--gold)', textAlign: 'center', marginBottom: '15px', marginTop: 0 }}>
+          🐾 Manual del Catsino
+        </h2>
         
         {/* TABLA DE PREMIOS CON MEMES RENDERIZADOS */}
-        <h3 style={{ color: 'var(--salmon)', marginBottom: '10px', fontSize: '1rem' }}>Premios (Combo de 3 a 5 iguales):</h3>
+        <h3 style={{ color: 'var(--salmon)', marginBottom: '10px', fontSize: '1rem' }}>
+          Premios (Combo de 3 a 5 iguales):
+        </h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
           {Object.keys(PAYTABLE).map((key) => {
             const sym = SYMBOLS[key];
@@ -43,7 +84,9 @@ export const PaytableModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* SÍMBOLOS ESPECIALES Y NUEVAS MECÁNICAS */}
-        <h3 style={{ color: 'var(--salmon)', marginBottom: '10px', fontSize: '1rem' }}>Símbolos Especiales & Bonus:</h3>
+        <h3 style={{ color: 'var(--salmon)', marginBottom: '10px', fontSize: '1rem' }}>
+          Símbolos Especiales & Bonus:
+        </h3>
         
         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', marginBottom: '20px' }}>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
@@ -69,7 +112,9 @@ export const PaytableModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* REGLAS DEL JUEGO */}
-        <h3 style={{ color: 'var(--salmon)', marginBottom: '8px', fontSize: '1rem' }}>Reglas del Juego:</h3>
+        <h3 style={{ color: 'var(--salmon)', marginBottom: '8px', fontSize: '1rem' }}>
+          Reglas del Juego:
+        </h3>
         <ul style={{ fontSize: '0.8rem', paddingLeft: '15px', lineHeight: '1.4', marginBottom: '20px', color: '#ccc' }}>
           <li>Los premios de línea pagan consecutivamente de <strong>izquierda a derecha</strong> comenzando por el primer rodillo.</li>
           <li>Solo paga la ganancia más alta por línea de pago activa.</li>
@@ -77,7 +122,9 @@ export const PaytableModal = ({ isOpen, onClose }) => {
           <li>Tu apuesta total equivale a: (Líneas Activas) × (Apuesta por Línea).</li>
         </ul>
 
-        <Button variant="primary" onClick={onClose} style={{ width: '100%' }}>¡Entendido, a ganar!</Button>
+        <Button variant="primary" onClick={onClose} style={{ width: '100%', padding: '12px', fontSize: '1rem' }}>
+          ¡Entendido, a ganar!
+        </Button>
       </div>
     </div>
   );

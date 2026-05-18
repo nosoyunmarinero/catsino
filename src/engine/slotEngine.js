@@ -1,23 +1,22 @@
 import { REEL_STRIPS, PAYLINES, PAYTABLE, SYMBOLS } from './constants';
 
-/**
- * Genera índices aleatorios para el inicio de ventana de cada reel
- */
 export const generateSpinPositions = () => {
   return REEL_STRIPS.map(strip => Math.floor(Math.random() * strip.length));
 };
 
 /**
- * Mapea las posiciones físicas a una matriz visible de 5 columnas x 3 filas
+ * Mapea las posiciones físicas a una matriz visible EXPANDIDA de 5 columnas x 5 filas
  */
 export const getResultMatrix = (positions) => {
-  const matrix = [[], [], []]; 
+  // Inicializamos 5 filas vacías
+  const matrix = [[], [], [], [], []]; 
   
   for (let col = 0; col < 5; col++) {
     const strip = REEL_STRIPS[col];
     const pos = positions[col];
     
-    for (let row = 0; row < 3; row++) {
+    // Iteramos por las 5 posiciones verticales visibles de la columna
+    for (let row = 0; row < 5; row++) {
       const targetIndex = (pos + row) % strip.length;
       matrix[row][col] = strip[targetIndex];
     }
@@ -26,25 +25,21 @@ export const getResultMatrix = (positions) => {
 };
 
 /**
- * Evalúa los aciertos, calcula ganancias, Free Spins y Multiplicadores Sorpresa.
+ * Evalúa los aciertos en la matriz de 5x5, calcula ganancias, Free Spins y Multiplicadores por Símbolo.
  */
 export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
   let totalPayout = 0;
   const winningLines = [];
-
   const linesToEvaluate = PAYLINES.slice(0, activeLinesCount);
 
+  // 1. Evaluar líneas de pago tradicionales
   linesToEvaluate.forEach(line => {
     const symbolsInLine = line.coords.map(([row, col]) => matrix[row][col]);
     
-    // Identificar el símbolo base de la línea (omitiendo WILDs)
     let firstNonWild = symbolsInLine.find(s => s.id !== SYMBOLS.WILD.id);
-    
-    // Si toda la línea es WILD, paga como el símbolo más alto (meme_cat_1)
     if (!firstNonWild) firstNonWild = SYMBOLS.meme_cat_1;
     
-    // El Scatter no da premios de línea tradicionales
-    if (firstNonWild.id === SYMBOLS.SCATTER.id) return;
+    if (firstNonWild.id === SYMBOLS.SCATTER.id || firstNonWild.type === 'MULTIPLIER') return;
 
     let matchCount = 0;
     for (let i = 0; i < symbolsInLine.length; i++) {
@@ -71,10 +66,10 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
     }
   });
 
-  // Conteo especial de Scatters (Gato Bonus)
+  // 2. Conteo de Scatters extendido a toda la matriz de 5x5
   let scatterCount = 0;
   const scatterCoords = [];
-  for (let r = 0; r < 3; r++) {
+  for (let r = 0; r < 5; r++) {
     for (let c = 0; c < 5; c++) {
       if (matrix[r][c].id === SYMBOLS.SCATTER.id) {
         scatterCount++;
@@ -94,7 +89,7 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
     
     if (scatterCount === 3) freeSpinsWon = 10;
     else if (scatterCount === 4) freeSpinsWon = 15;
-    else if (scatterCount === 5) freeSpinsWon = 25;
+    else if (scatterCount >= 5) freeSpinsWon = 25; // Cubre 5 o más en la pantalla gigante
 
     winningLines.push({
       lineId: 'SCATTER',
@@ -104,12 +99,40 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
     });
   }
 
-  // MECÁNICA MULTIPLIPLICADOR ALEATORIO
-  let activeMultiplier = 1;
-  if (totalPayout > 0 && Math.random() < 0.25) { // 25% probabilidad de activarse
-    const multiPool = [2, 3, 5, 10];
-    activeMultiplier = multiPool[Math.floor(Math.random() * multiPool.length)];
-    totalPayout = totalPayout * activeMultiplier;
+  // 3. Mecánica de Símbolos Multiplicadores Físicos en la pantalla de 5x5
+  let multiplierSum = 0;
+  const multiplierCoords = [];
+
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const symbol = matrix[r][c];
+      if (symbol && symbol.type === 'MULTIPLIER') {
+        // Sumamos directamente los valores de los multiplicadores (x2 + x3 = x5)
+        const val = Number(symbol.value) || 0;
+        multiplierSum += val; 
+        multiplierCoords.push([r, c]);
+      }
+    }
+  }
+
+  // Si no hay multiplicadores en pantalla, el multiplicador base es 1
+  const activeMultiplier = multiplierSum > 0 ? multiplierSum : 1;
+  const finalMultiplierDisplay = activeMultiplier;
+
+  // El multiplicador físico aplica solo si anotaste ganancias válidas en el tiro
+  if (totalPayout > 0 && activeMultiplier > 1) {
+    const originalPayout = totalPayout;
+    totalPayout = originalPayout * activeMultiplier;
+    
+    // 🌟 CORREGIDO: Ahora le pasamos el payout real extra generado, o el multiplicador real 
+    // para que la interfaz no flashee números locos ni calcule un x4.
+    winningLines.push({
+      lineId: 'MULTIPLIER_SYMBOL',
+      matchCount: multiplierCoords.length,
+      payout: totalPayout - originalPayout, // El valor neto ganado gracias al multiplicador
+      coords: multiplierCoords,
+      multiplierValue: finalMultiplierDisplay // Mandamos el "5" real para que el front diga x5 sin dudar
+    });
   }
 
   return {
@@ -117,6 +140,6 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
     winningLines,
     triggerBonus,
     freeSpinsWon,       
-    activeMultiplier    
+    activeMultiplier: finalMultiplierDisplay // Devolvemos el valor real acumulado de la jugada
   };
 };
