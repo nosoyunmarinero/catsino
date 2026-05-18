@@ -24,7 +24,7 @@ export const useSlotMachine = () => {
   const [currentPositions, setCurrentPositions] = useState([0, 0, 0, 0, 0]);
   const [winData, setWinData] = useState(null);
   const [displayMatrix, setDisplayMatrix] = useState(() =>
-    getResultMatrix([0, 0, 0, 0, 0])
+    getResultMatrix([0, 0, 0, 0, 0]),
   );
   const [explodingCoords, setExplodingCoords] = useState([]);
 
@@ -39,7 +39,7 @@ export const useSlotMachine = () => {
       // Filtrar los que NO explotaron en esta columna (de abajo hacia arriba)
       for (let row = 4; row >= 0; row--) {
         const isExploded = explodedPairs.some(
-          ([r, c]) => r === row && c === col
+          ([r, c]) => r === row && c === col,
         );
         if (!isExploded) {
           survivingSymbols.push(nextMatrix[row][col]);
@@ -54,7 +54,7 @@ export const useSlotMachine = () => {
           entryIndex++;
         } else {
           const allSymbolKeys = Object.keys(SYMBOLS).filter(
-            (k) => k !== "WILD" && k !== "SCATTER"
+            (k) => k !== "WILD" && k !== "SCATTER" && !k.startsWith("MULT_"),
           );
           const randomKey =
             allSymbolKeys[Math.floor(Math.random() * allSymbolKeys.length)];
@@ -91,7 +91,7 @@ export const useSlotMachine = () => {
     // Frenado de rodillos
     for (let i = 0; i < 5; i++) {
       await new Promise((resolve) =>
-        setTimeout(resolve, startDelay + i * stopInterval)
+        setTimeout(resolve, startDelay + i * stopInterval),
       );
 
       setCurrentPositions((prev) => {
@@ -125,15 +125,17 @@ export const useSlotMachine = () => {
       const evaluation = evaluateMatrix(
         currentTempMatrix,
         activeLines,
-        betPerLine
+        betPerLine,
       );
 
       if (evaluation.totalPayout > 0 || evaluation.freeSpinsWon > 0) {
         cascadeStep++;
+
         accumulatedPayout += evaluation.totalPayout;
         accumulatedFreeSpins += evaluation.freeSpinsWon;
 
-        // Extraer coordenadas ganadoras
+        // 🌟 CORREGIDO: Ahora extraemos TODAS las coordenadas que deben detonar,
+        // incluyendo los nodos de MULTIPLIER_SYMBOL y MULTIPLIER_PURGE de manera unificada.
         const coordsToExplode = [];
         evaluation.winningLines.forEach((line) => {
           line.coords.forEach(([r, c]) => {
@@ -143,58 +145,62 @@ export const useSlotMachine = () => {
           });
         });
 
-        // 1. DISPARAR EXPLOSIÓN VISUAL Y SETEAR LÍNEAS GANADORAS (HIGHLIGHT)
+        // Si por algún desajuste no hay celdas para explotar, rompemos el ciclo para evitar bucles infinitos
+        if (coordsToExplode.length === 0) {
+          keepCascading = false;
+          break;
+        }
+
+        // 1. DISPARAR EXPLOSIÓN VISUAL Y SETEAR LÍNEAS GANADORAS
         setExplodingCoords(coordsToExplode);
         setWinData({
           ...evaluation,
-          totalPayout: accumulatedPayout,
+          totalPayout: accumulatedPayout, 
           freeSpinsWon: accumulatedFreeSpins,
         });
 
-        // ⏱️ TIEMPO DE EXPLOSIÓN: Esperamos a que la animación '.cell-exploding' (0.5s) se complete en el DOM
+        // ⏱️ TIEMPO DE EXPLOSIÓN
         await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 450 : 600)
+          setTimeout(resolve, turboMode ? 450 : 600),
         );
 
-        // 2. DESAPARECER SÍMBOLOS: Forzamos un render intermedio vaciando las celdas afectadas
-        // Esto evita que un icono nuevo solape bruscamente al anterior en pleno estallido
+        // 2. DESAPARECER SÍMBOLOS: Vaciar estrictamente las celdas premiadas y multiplicadores.
         setDisplayMatrix((prevMatrix) =>
           prevMatrix.map((row, rIdx) =>
             row.map((cell, cIdx) => {
               const wasExploded = coordsToExplode.some(
-                ([er, ec]) => er === rIdx && ec === cIdx
+                ([er, ec]) => er === rIdx && ec === cIdx,
               );
               return wasExploded
                 ? { label: "", name: "empty", id: `empty-${rIdx}-${cIdx}` }
                 : cell;
-            })
-          )
+            }),
+          ),
         );
 
-        // Apagamos las coordenadas de explosión para limpiar las clases CSS reactivas
+        // Apagamos las coordenadas de explosión para limpiar CSS reactivo
         setExplodingCoords([]);
 
-        // Pequeño respiro visual con el tablero vacío en las zonas premiadas antes de que la gravedad tire todo
         await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 60 : 150)
+          setTimeout(resolve, turboMode ? 60 : 150),
         );
 
-        // 3. PROCESAR GRAVEDAD: Calculamos el corrimiento real de los rodillos
+        // 3. PROCESAR GRAVEDAD: Ahora los de arriba caerán correctamente ocupando los huecos vacíos
         const updatedMatrix = applyCascadeGravity(
           currentTempMatrix,
-          coordsToExplode
+          coordsToExplode,
         );
-
-        // Apagamos los marcos dorados de las líneas ganadoras al momento del desplome
+        
+        // Limpiamos los marcos dorados viejos para el desplome
         setWinData((prev) => (prev ? { ...prev, winningLines: [] } : null));
 
-        // Inyectamos la matriz con los nuevos elementos (Activa la animación '.cell-cascading')
+        // Renderizamos la caída real de los símbolos sobrevivientes
         setDisplayMatrix(updatedMatrix);
         currentTempMatrix = updatedMatrix;
 
-        // ⏱️ TIEMPO DE CAÍDA: Esperamos a que termine de ejecutarse '.cascade-fall' junto con sus rebotes
+        // ⏱️ TIEMPO DE CAÍDA
         await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 650 : 1200)
+          setTimeout(resolve, turboMode ? 650 : 1200),
         );
       } else {
         keepCascading = false;

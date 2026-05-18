@@ -37,15 +37,23 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
   linesToEvaluate.forEach(line => {
     const symbolsInLine = line.coords.map(([row, col]) => matrix[row][col]);
     
-    let firstNonWild = symbolsInLine.find(s => s.id !== SYMBOLS.WILD.id);
+    let firstNonWild = symbolsInLine.find(s => s && s.id !== SYMBOLS.WILD.id);
     if (!firstNonWild) firstNonWild = SYMBOLS.meme_cat_1;
     
-    if (firstNonWild.id === SYMBOLS.SCATTER.id || firstNonWild.type === 'MULTIPLIER') return;
+    // 🌟 PROTECCIÓN DE LECTURA EXTRA: Usamos ?. para evitar caídas si id es undefined
+    if (
+      firstNonWild?.id === SYMBOLS.SCATTER.id || 
+      firstNonWild?.type === 'MULTIPLIER' || 
+      (firstNonWild?.id && typeof firstNonWild.id === 'string' && firstNonWild.id.toLowerCase().includes('mult'))
+    ) {
+      return;
+    }
 
     let matchCount = 0;
     for (let i = 0; i < symbolsInLine.length; i++) {
       const current = symbolsInLine[i];
-      if (current.id === firstNonWild.id || current.id === SYMBOLS.WILD.id) {
+      // Seguridad añadida para verificar que el símbolo exista en transiciones de cascada
+      if (current && (current.id === firstNonWild.id || current.id === SYMBOLS.WILD.id)) {
         matchCount++;
       } else {
         break; 
@@ -72,7 +80,7 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
   const scatterCoords = [];
   for (let r = 0; r < 5; r++) {
     for (let c = 0; c < 5; c++) {
-      if (matrix[r][c].id === SYMBOLS.SCATTER.id) {
+      if (matrix[r][c] && matrix[r][c].id === SYMBOLS.SCATTER.id) {
         scatterCount++;
         scatterCoords.push([r, c]);
       }
@@ -109,7 +117,8 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
   for (let r = 0; r < 5; r++) {
     for (let c = 0; c < 5; c++) {
       const symbol = matrix[r][c];
-      if (symbol && symbol.type === 'MULTIPLIER') {
+      // Evaluamos estrictamente por la propiedad estructural 'type' de tus objetos de símbolos
+      if (symbol && (symbol.type === 'MULTIPLIER' || (symbol.id && typeof symbol.id === 'string' && symbol.id.toLowerCase().includes('mult')))) {
         const val = Number(symbol.value) || 0;
         if (val > 0) multiplierValues.push(val);
         multiplierCoords.push([r, c]);
@@ -117,31 +126,37 @@ export const evaluateMatrix = (matrix, activeLinesCount, betPerLine) => {
     }
   }
 
-  // En producción aplicamos solo el multiplicador visible más alto para evitar picos de pago.
   const activeMultiplier = multiplierValues.length > 0 ? Math.max(...multiplierValues) : 1;
   const finalMultiplierDisplay = activeMultiplier;
 
-  // El multiplicador físico aplica solo si anotaste ganancias válidas en el tiro
-  if (totalPayout > 0 && activeMultiplier > 1) {
-    const originalPayout = totalPayout;
-    totalPayout = originalPayout * activeMultiplier;
-    
-    // 🌟 CORREGIDO: Ahora le pasamos el payout real extra generado, o el multiplicador real 
-    // para que la interfaz no flashee números locos ni calcule un x4.
-    winningLines.push({
-      lineId: 'MULTIPLIER_SYMBOL',
-      matchCount: multiplierCoords.length,
-      payout: totalPayout - originalPayout, // El valor neto ganado gracias al multiplicador
-      coords: multiplierCoords,
-      multiplierValue: finalMultiplierDisplay // Mandamos el "5" real para que el front diga x5 sin dudar
-    });
+  // Lógica de inyección para explosión y cascada de multiplicadores
+  if (totalPayout > 0) {
+    if (activeMultiplier > 1) {
+      const originalPayout = totalPayout;
+      totalPayout = originalPayout * activeMultiplier;
+      
+      winningLines.push({
+        lineId: 'MULTIPLIER_SYMBOL',
+        matchCount: multiplierCoords.length,
+        payout: totalPayout - originalPayout, 
+        coords: multiplierCoords,
+        multiplierValue: finalMultiplierDisplay 
+      });
+    } else if (multiplierCoords.length > 0) {
+      winningLines.push({
+        lineId: 'MULTIPLIER_PURGE',
+        matchCount: multiplierCoords.length,
+        payout: 0,
+        coords: multiplierCoords
+      });
+    }
   }
 
   return {
     totalPayout,
     winningLines,
     triggerBonus,
-    freeSpinsWon,       
-    activeMultiplier: finalMultiplierDisplay // Devolvemos el valor real acumulado de la jugada
+    freeSpinsWon,      
+    activeMultiplier: finalMultiplierDisplay 
   };
 };
