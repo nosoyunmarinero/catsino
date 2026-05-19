@@ -1,6 +1,10 @@
 // src/components/games/slots/components/PaytableModal.jsx
-import { PAYTABLE, SLOT_BALANCE_CONFIG, SYMBOLS } from '../engine/slotConstants.js';
-import { Button } from '../../../ui/Button';
+import {
+  PAYTABLE,
+  SLOT_BALANCE_CONFIG,
+  SYMBOLS,
+} from "../engine/slotConstants.js";
+import { Button } from "../../../ui/Button";
 
 export const PaytableModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -10,80 +14,114 @@ export const PaytableModal = ({ isOpen, onClose }) => {
   const scatter5Reward = SLOT_BALANCE_CONFIG.scatter.rewards[5];
   const multiplierValues = SLOT_BALANCE_CONFIG.multipliers.availableValues
     .map((value) => `x${value}`)
-    .join(' o ');
+    .join(" o ");
 
   return (
     // Capa oscura que bloquea el fondo de la pantalla
-    <div 
-      className="modal-overlay" 
+    <div
+      className="modal-overlay"
       onClick={onClose}
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "rgba(0, 0, 0, 0.85)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         zIndex: 9999, // Se posiciona por encima de la Slot Machine
-        backdropFilter: 'blur(4px)',
-        padding: '20px',
-        boxSizing: 'border-box'
+        backdropFilter: "blur(4px)",
+        padding: "20px",
+        boxSizing: "border-box",
       }}
     >
       {/* Contenedor físico de la ventana del manual */}
-      <div 
-        className="modal-content" 
-        onClick={(e) => e.stopPropagation()} 
-        style={{ 
-          maxWidth: '600px',
-          width: '100%',
-          background: '#2c1e14', // Fondo madera oscura a juego con el Catsino
-          border: '4px solid var(--gold)',
-          borderRadius: '20px',
-          maxHeight: '85vh', // Evita que se salga de pantallas pequeñas o laptops
-          overflowY: 'auto', // Si el contenido es largo, el scroll se genera SOLO dentro de la ventanita
-          padding: '25px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.6)',
-          boxSizing: 'border-box',
-          color: 'var(--cream)',
-          fontFamily: 'var(--font-ui)'
+      <div
+        className="modal-content"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: "600px",
+          width: "100%",
+          background: "#2c1e14", // Fondo madera oscura a juego con el catzzino
+          border: "4px solid var(--gold)",
+          borderRadius: "20px",
+          maxHeight: "85vh", // Evita que se salga de pantallas pequeñas o laptops
+          overflowY: "auto", // Si el contenido es largo, el scroll se genera SOLO dentro de la ventanita
+          padding: "25px",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.6)",
+          boxSizing: "border-box",
+          color: "var(--cream)",
+          fontFamily: "var(--font-ui)",
         }}
       >
-        <h2 style={{ color: 'var(--gold)', textAlign: 'center', marginBottom: '15px', marginTop: 0 }}>
-          🐾 Manual del Catsino
+        <h2
+          style={{
+            color: "var(--gold)",
+            textAlign: "center",
+            marginBottom: "15px",
+            marginTop: 0,
+          }}
+        >
+          🐾 Manual del catzzino
         </h2>
-        
+
         {/* TABLA DE PREMIOS CON MEMES RENDERIZADOS */}
-        <h3 style={{ color: 'var(--salmon)', marginBottom: '10px', fontSize: '1rem' }}>
+        <h3
+          style={{
+            color: "var(--salmon)",
+            marginBottom: "10px",
+            fontSize: "1rem",
+          }}
+        >
           Premios (Combo de 3 a 5 iguales):
         </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "8px",
+            marginBottom: "20px",
+          }}
+        >
           {Object.keys(PAYTABLE).map((key) => {
             const sym = SYMBOLS[key];
             if (!sym) return null;
             return (
-              <div key={key} style={{ 
-                background: 'rgba(0,0,0,0.3)', 
-                padding: '6px 10px', 
-                borderRadius: '8px', 
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                border: '1px solid rgba(255,255,255,0.05)'
-              }}>
-                <img 
-                  src={sym.label} 
-                  alt={sym.name} 
-                  style={{ width: '32px', height: '32px', objectFit: 'contain', borderRadius: '4px' }} 
+              <div
+                key={key}
+                style={{
+                  background: "rgba(0,0,0,0.3)",
+                  padding: "6px 10px",
+                  borderRadius: "8px",
+                  fontSize: "0.85rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                }}
+              >
+                <img
+                  src={sym.label}
+                  alt={sym.name}
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    objectFit: "contain",
+                    borderRadius: "4px",
+                  }}
                 />
                 <div>
                   <strong>{sym.name}:</strong> <br />
-                  <span style={{ color: 'var(--gold)' }}>3x: x{PAYTABLE[key][3]}</span> | 
-                  <span style={{ color: 'var(--gold)' }}> 5x: x{PAYTABLE[key][5]}</span>
+                  <span style={{ color: "var(--gold)" }}>
+                    3x: x{PAYTABLE[key][3]}
+                  </span>{" "}
+                  |
+                  <span style={{ color: "var(--gold)" }}>
+                    {" "}
+                    5x: x{PAYTABLE[key][5]}
+                  </span>
                 </div>
               </div>
             );
@@ -91,45 +129,134 @@ export const PaytableModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* SÍMBOLOS ESPECIALES Y NUEVAS MECÁNICAS */}
-        <h3 style={{ color: 'var(--salmon)', marginBottom: '10px', fontSize: '1rem' }}>
+        <h3
+          style={{
+            color: "var(--salmon)",
+            marginBottom: "10px",
+            fontSize: "1rem",
+          }}
+        >
           Símbolos Especiales & Bonus:
         </h3>
-        
-        <div style={{ background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
-            <img src={SYMBOLS.WILD.label} alt="WILD" style={{ width: '28px', height: '28px', objectFit: 'cover', borderRadius: '4px' }} />
-            <p style={{ fontSize: '0.85rem', margin: 0 }}>
-              <strong>WILD (Comodín):</strong> Sustituye a cualquier gato en las líneas para completar combinaciones (excepto Scatters).
+
+        <div
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            padding: "10px",
+            borderRadius: "8px",
+            marginBottom: "20px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              marginBottom: "8px",
+            }}
+          >
+            <img
+              src={SYMBOLS.WILD.label}
+              alt="WILD"
+              style={{
+                width: "28px",
+                height: "28px",
+                objectFit: "cover",
+                borderRadius: "4px",
+              }}
+            />
+            <p style={{ fontSize: "0.85rem", margin: 0 }}>
+              <strong>WILD (Comodín):</strong> Sustituye a cualquier gato en las
+              líneas para completar combinaciones (excepto Scatters).
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
-            <img src={SYMBOLS.SCATTER.label} alt="SCATTER" style={{ width: '28px', height: '28px', objectFit: 'cover', borderRadius: '4px' }} />
-            <p style={{ fontSize: '0.85rem', margin: 0 }}>
-              <strong>SCATTER (Gato Bonus):</strong> {scatterTriggerCount} o más en cualquier posición activan la ronda de <strong>Giros Gratis</strong> ({`4 = ${scatter4Reward.freeSpins} FS, 5 = ${scatter5Reward.freeSpins} FS`}).
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              marginBottom: "8px",
+            }}
+          >
+            <img
+              src={SYMBOLS.SCATTER.label}
+              alt="SCATTER"
+              style={{
+                width: "28px",
+                height: "28px",
+                objectFit: "cover",
+                borderRadius: "4px",
+              }}
+            />
+            <p style={{ fontSize: "0.85rem", margin: 0 }}>
+              <strong>SCATTER (Gato Bonus):</strong> {scatterTriggerCount} o más
+              en cualquier posición activan la ronda de{" "}
+              <strong>Giros Gratis</strong> (
+              {`4 = ${scatter4Reward.freeSpins} FS, 5 = ${scatter5Reward.freeSpins} FS`}
+              ).
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '8px', marginTop: '8px' }}>
-            <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>🔥</span>
-            <p style={{ fontSize: '0.85rem', margin: 0, color: 'var(--gold)' }}>
-              <strong>Meme Multiplier:</strong> En producción solo aplica el multiplicador visible más alto del tiro ganador (<strong>{multiplierValues}</strong>) para mantener una volatilidad más controlada.
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              borderTop: "1px solid rgba(255,255,255,0.1)",
+              paddingTop: "8px",
+              marginTop: "8px",
+            }}
+          >
+            <span style={{ fontSize: "1.5rem", lineHeight: 1 }}>🔥</span>
+            <p style={{ fontSize: "0.85rem", margin: 0, color: "var(--gold)" }}>
+              <strong>Meme Multiplier:</strong> En producción solo aplica el
+              multiplicador visible más alto del tiro ganador (
+              <strong>{multiplierValues}</strong>) para mantener una volatilidad
+              más controlada.
             </p>
           </div>
         </div>
 
         {/* REGLAS DEL JUEGO */}
-        <h3 style={{ color: 'var(--salmon)', marginBottom: '8px', fontSize: '1rem' }}>
+        <h3
+          style={{
+            color: "var(--salmon)",
+            marginBottom: "8px",
+            fontSize: "1rem",
+          }}
+        >
           Reglas del Juego:
         </h3>
-        <ul style={{ fontSize: '0.8rem', paddingLeft: '15px', lineHeight: '1.4', marginBottom: '20px', color: '#ccc' }}>
-          <li>Los premios de línea pagan consecutivamente de <strong>izquierda a derecha</strong> comenzando por el primer rodillo.</li>
+        <ul
+          style={{
+            fontSize: "0.8rem",
+            paddingLeft: "15px",
+            lineHeight: "1.4",
+            marginBottom: "20px",
+            color: "#ccc",
+          }}
+        >
+          <li>
+            Los premios de línea pagan consecutivamente de{" "}
+            <strong>izquierda a derecha</strong> comenzando por el primer
+            rodillo.
+          </li>
           <li>Solo paga la ganancia más alta por línea de pago activa.</li>
-          <li>Los Giros Gratis se juegan automáticamente con la misma apuesta que los activó y no descuentan de tu balance.</li>
-          <li>Tu apuesta total equivale a: (Líneas Activas) × (Apuesta por Línea).</li>
+          <li>
+            Los Giros Gratis se juegan automáticamente con la misma apuesta que
+            los activó y no descuentan de tu balance.
+          </li>
+          <li>
+            Tu apuesta total equivale a: (Líneas Activas) × (Apuesta por Línea).
+          </li>
         </ul>
 
-        <Button variant="primary" onClick={onClose} style={{ width: '100%', padding: '12px', fontSize: '1rem' }}>
+        <Button
+          variant="primary"
+          onClick={onClose}
+          style={{ width: "100%", padding: "12px", fontSize: "1rem" }}
+        >
           ¡Entendido, a ganar!
         </Button>
       </div>

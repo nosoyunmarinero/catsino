@@ -54,7 +54,7 @@ function App() {
               fontSize: "clamp(1.5rem, 8vw, 2.5rem)",
             }}
           >
-            CATSINO
+            catzzino
           </h1>
 
           <div
@@ -82,7 +82,7 @@ function App() {
               últimas <strong>1,000 monedas de pescado</strong>. Como todo un
               felino maduro, consciente y extremadamente responsable, ha
               decidido que la única forma lógica de estabilizar su futuro
-              financiero es... <strong>¡Apostarlo todo en el Catsino!</strong>{" "}
+              financiero es... <strong>¡Apostarlo todo en el catzzino!</strong>{" "}
               🐾🎰
             </p>
           </div>

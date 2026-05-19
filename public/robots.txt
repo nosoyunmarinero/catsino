@@ -1,6 +1,6 @@
 # https://www.robotstxt.org/robotstxt.html
 
-# 🤖 Permitir que todos los buscadores (Google, Bing, Yahoo) indexen Catsino
+# 🤖 Permitir que todos los buscadores (Google, Bing, Yahoo) indexen catzzino
 User-agent: *
 Allow: /
 

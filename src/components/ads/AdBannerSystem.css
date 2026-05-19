@@ -1,7 +1,7 @@
 /* src/components/ads/AdBannerSystem.css */
 
 /* --- CONTEDOR GENERAL ABAJO DEL SITIO --- */
-.catsino-ad-wrapper {
+.catzzino-ad-wrapper {
   width: 100%;
   padding: 10px;
   box-sizing: border-box;
@@ -13,7 +13,7 @@
 }
 
 /* --- ZONA ESPECÍFICA DEL BANNER (Adaptativo) --- */
-.catsino-ad-container {
+.catzzino-ad-container {
   width: 100%;
   max-width: 728px; /* Tamaño estándar Leaderboard para PC */
   height: 90px;
@@ -28,14 +28,14 @@
   transition: all 0.3s ease-in-out;
 }
 
-.catsino-ad-loading {
+.catzzino-ad-loading {
   color: #444;
   font-size: 0.8rem;
   font-family: monospace;
   letter-spacing: 1px;
 }
 
-.catsino-ad-placeholder {
+.catzzino-ad-placeholder {
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, #1f150f, #2c1e14);
@@ -235,7 +235,7 @@
 
 /* Ajustes para Smartphones (Tablets hacia abajo) */
 @media (max-width: 768px) {
-  .catsino-ad-container {
+  .catzzino-ad-container {
     max-width: 320px; /* Pasa automáticamente a tamaño Banner Mobile estándar (320x50) */
     height: 50px;
   }

@@ -10,7 +10,7 @@ export function Support() {
   return (
     <>
       <button
-        className="catsino-support-btn"
+        className="catzzino-support-btn"
         onClick={() => setShowModal(true)}
       >
         Support 💙

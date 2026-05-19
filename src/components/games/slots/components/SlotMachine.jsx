@@ -257,7 +257,7 @@ export const SlotMachine = ({ onBack }) => {
           fontSize: "var(--font-size-h1)",
         }}
       >
-        🎰 CATSINO 🎰
+        🎰 catzzino 🎰
       </h1>
 
       <div

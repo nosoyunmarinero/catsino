@@ -91,10 +91,10 @@ export function AdBannerSystem() {
   return (
     <>
       {/* BANNER INFERIOR (Estilo estático para desarrollo) */}
-      <footer className="catsino-ad-wrapper">
-        <div className="catsino-ad-container" ref={bannerRef}>
+      <footer className="catzzino-ad-wrapper">
+        <div className="catzzino-ad-container" ref={bannerRef}>
           {!showAd && (
-            <div className="catsino-ad-loading">
+            <div className="catzzino-ad-loading">
               ESPACIO PUBLICITARIO DEL CASINO
             </div>
           )}
@@ -126,7 +126,7 @@ export function AdBannerSystem() {
                 <h3>¡Anuncio Completado! 🎉</h3>
                 <p>
                   Los anuncios de formato largo que aparecen cada 5 minutos nos
-                  permiten financiar el desarrollo de Catsino, mantener la
+                  permiten financiar el desarrollo de catzzino, mantener la
                   infraestructura web activa y asegurar que la travesía de
                   Gatoberto siga siendo 100% gratuita.
                 </p>

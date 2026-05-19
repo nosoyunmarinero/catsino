@@ -1,7 +1,7 @@
 /* src/components/ui/Support.css */
 
 /* --- BOTÓN FLOTANTE RESPONSIVO --- */
-.catsino-support-btn {
+.catzzino-support-btn {
   position: fixed;
   bottom: 20px;
   left: 20px;
@@ -20,7 +20,7 @@
   transition: all 0.2s ease;
 }
 
-.catsino-support-btn:hover {
+.catzzino-support-btn:hover {
   background: var(--gold, #ffcc00);
   color: #000;
   transform: scale(1.05);
@@ -143,7 +143,7 @@
 
 /* --- 📱 MEDIA QUERIES PARA MÓVILES EXTREMOS (Resoluciones famosas: iPhone SE, Mini, etc.) --- */
 @media (max-width: 480px) {
-  .catsino-support-btn {
+  .catzzino-support-btn {
     bottom: 12px;
     left: 12px;
     padding: 8px 14px;
