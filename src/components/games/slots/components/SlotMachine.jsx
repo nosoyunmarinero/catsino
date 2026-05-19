@@ -7,16 +7,18 @@ import { ReelStrip } from "./ReelStrip";
 import { PaylineDisplay } from "./PaylineDisplay";
 import { WinOverlay } from "./WinOverlay";
 import { PaytableModal } from "./PaytableModal";
-import { Button } from "../../../ui/Button";
-import { PRESET_BETS } from "../engine/slotConstants";
+import { GameOverDialog } from "./GameOverDialog";
+import { BetControls } from "./BetControls";
 
 export const SlotMachine = ({ onBack }) => {
-  const { balance, turboMode, setTurboMode, claimFreeCoins, freeSpinsLeft } =
+  const { balance, turboMode, setTurboMode, adjustBalance, freeSpinsLeft } =
     useCasinoStore();
   const [modalOpen, setModalOpen] = useState(false);
-
-  // 🌟 Estado local para controlar el retraso del Win Overlay
   const [showOverlay, setShowOverlay] = useState(false);
+  const [showGameOver, setShowGameOver] = useState(false);
+  
+  // Estado local para congelar la pantalla con la animación del aviso de Bonus
+  const [showBonusTriggerAnim, setShowBonusTriggerAnim] = useState(false);
 
   const {
     betPerLine,
@@ -30,18 +32,34 @@ export const SlotMachine = ({ onBack }) => {
     spin,
     isAnyReelSpinning,
     explodingCoords,
+    currentBonusWin,       // 🐾 Traemos el acumulador del hook
+    justTriggeredBonus,    // 🐾 Traemos el flag de activación
+    setJustTriggeredBonus
   } = useSlotMachine();
 
   const { isAutoActive, remainingSpins, startAuto, stopAuto } = useAutobet(
     spin,
     isAnyReelSpinning,
     balance,
-    totalBet
+    totalBet,
+    winData
   );
 
-  // 🌟 Efecto para retrasar la aparición del overlay tras la última explosión
+  // Efecto para capturar el disparo del Bonus y lanzar el festejo visual
   useEffect(() => {
-    // Si los rodillos están girando o hay iconos explotando, ocultamos el overlay de inmediato
+    if (justTriggeredBonus) {
+      setShowBonusTriggerAnim(true);
+      setJustTriggeredBonus(false); // Apagar flag interno
+      
+      // Auto-ocultar el cartel de celebración tras 3 segundos
+      const timer = setTimeout(() => {
+        setShowBonusTriggerAnim(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [justTriggeredBonus]);
+
+  useEffect(() => {
     if (
       isAnyReelSpinning ||
       explodingCoords.length > 0 ||
@@ -52,13 +70,39 @@ export const SlotMachine = ({ onBack }) => {
       return;
     }
 
-    // Si el tablero ya entró en calma y hay un premio, esperamos 1.2 segundos para mostrarlo
     const timer = setTimeout(() => {
       setShowOverlay(true);
     }, 600);
 
     return () => clearTimeout(timer);
   }, [isAnyReelSpinning, explodingCoords, winData]);
+
+  useEffect(() => {
+    const isPhysicallySpinning = spinning ? spinning.some(s => s === true) : false;
+
+    if (
+      balance === 0 &&
+      freeSpinsLeft === 0 &&
+      !isAnyReelSpinning &&
+      !isPhysicallySpinning && 
+      explodingCoords.length === 0
+    ) {
+      const checkTimer = setTimeout(() => {
+        useCasinoStore.getState().balance === 0 && setShowGameOver(true);
+      }, 100);
+
+      if (isAutoActive) stopAuto();
+
+      return () => clearTimeout(checkTimer);
+    } else {
+      setShowGameOver(false);
+    }
+  }, [balance, freeSpinsLeft, isAnyReelSpinning, spinning, explodingCoords, isAutoActive, stopAuto]);
+
+  const handleRecargarMonedas = () => {
+    adjustBalance(1000);
+    setShowGameOver(false);
+  };
 
   const winningCoords = winData
     ? winData.winningLines.flatMap((l) => l.coords)
@@ -80,33 +124,35 @@ export const SlotMachine = ({ onBack }) => {
         boxSizing: "border-box",
       }}
     >
-      <div
-        className="mobile-hide"
-        style={{
-          position: "absolute",
-          top: "-25px",
-          left: "40px",
-          width: "0",
-          height: "0",
-          borderLeft: "25px solid transparent",
-          borderRight: "25px solid transparent",
-          borderBottom: "26px solid var(--gold)",
-        }}
-      />
-      <div
-        className="mobile-hide"
-        style={{
-          position: "absolute",
-          top: "-25px",
-          right: "40px",
-          width: "0",
-          height: "0",
-          borderLeft: "25px solid transparent",
-          borderRight: "25px solid transparent",
-          borderBottom: "26px solid var(--gold)",
-        }}
-      />
+      {/* PANTALLA EMERGENTE DE CELEBRACIÓN DE GIROS GRATIS */}
+      {showBonusTriggerAnim && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0, 0, 0, 0.85)",
+            zIndex: 100,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            borderRadius: "24px",
+            animation: "fadeIn 0.3s ease-out"
+          }}
+        >
+          <h1 style={{ color: "var(--gold)", fontSize: "3rem", margin: 0, textAlign: "center", textShadow: "0 0 20px #ffcc00" }}>
+            🎉 ¡FREE SPINS GANADOS! 🎉
+          </h1>
+          <p style={{ color: "var(--cream)", fontSize: "1.5rem", marginTop: "10px" }}>
+            Prepárate para las grandes ganancias
+          </p>
+        </div>
+      )}
 
+      {/* Botones de navegación superiores */}
       <button
         onClick={onBack}
         style={{
@@ -191,201 +237,58 @@ export const SlotMachine = ({ onBack }) => {
         ))}
       </div>
 
-      {/* 🌟 Renderizado condicionado al estado temporizado */}
       {showOverlay && <WinOverlay winData={winData} />}
 
+      {/* PANEL DE SEGUIMIENTO DE FREE SPINS CON ALCANCÍA ACUMULADA */}
       {freeSpinsLeft > 0 && (
         <div
           style={{
-            background: "var(--gold)",
+            background: "linear-gradient(90deg, #b38600, #ffcc00, #b38600)",
             color: "#000",
-            padding: "8px",
-            borderRadius: "10px",
-            textAlign: "center",
-            fontWeight: "bold",
-            margin: "10px 0",
-            fontSize: "0.9rem",
-            boxShadow: "0 0 15px rgba(255, 215, 0, 0.5)",
-            animation: "pulse 1.5s infinite",
+            padding: "12px",
+            borderRadius: "12px",
+            margin: "12px 0",
+            boxShadow: "0 0 20px rgba(255, 215, 0, 0.6)",
+            display: "flex",
+            justifyContent: "space-around",
+            alignItems: "center",
+            fontWeight: "bold"
           }}
         >
-          🎰 GIROS GRATIS: {freeSpinsLeft} 🎰
+          <div style={{ fontSize: "1.1rem" }}>
+            🎰 GIROS RESTANTES: <span style={{ fontSize: "1.3rem" }}>{freeSpinsLeft}</span>
+          </div>
+          <div style={{ borderLeft: "2px solid rgba(0,0,0,0.2)", height: "25px" }} />
+          <div style={{ fontSize: "1.1rem" }}>
+            💰 GANANCIA ACUMULADA: <span style={{ fontSize: "1.3rem", fontFamily: "var(--font-display)" }}>🐾 {currentBonusWin.toLocaleString()}</span>
+          </div>
         </div>
       )}
 
-      <div
-        style={{
-          marginTop: "15px",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: "10px",
-          background: "rgba(0,0,0,0.3)",
-          padding: "12px",
-          borderRadius: "12px",
-        }}
-      >
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "0.75rem",
-              marginBottom: "5px",
-              color: "var(--gold)",
-            }}
-          >
-            Bet/Line:
-          </label>
-          <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-            {PRESET_BETS.map((amt) => (
-              <button
-                key={amt}
-                disabled={isAnyReelSpinning || isAutoActive}
-                onClick={() => setBetPerLine(amt)}
-                style={{
-                  flex: "1 0 30%",
-                  padding: "6px 2px",
-                  borderRadius: "6px",
-                  fontFamily: "var(--font-display)",
-                  fontSize: "0.8rem",
-                  cursor: "pointer",
-                  border: "none",
-                  background: betPerLine === amt ? "var(--gold)" : "#1a110a",
-                  color: betPerLine === amt ? "#000" : "var(--cream)",
-                }}
-              >
-                {amt}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "0.75rem",
-              marginBottom: "5px",
-              color: "var(--gold)",
-            }}
-          >
-            Líneas: <strong>{activeLines}</strong>
-          </label>
-          <input
-            type="range"
-            min="1"
-            max="20"
-            value={activeLines}
-            disabled={isAnyReelSpinning || isAutoActive}
-            onChange={(e) => setActiveLines(parseInt(e.target.value))}
-            style={{
-              width: "100%",
-              accentColor: "var(--gold)",
-              cursor: "pointer",
-            }}
-          />
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "5px",
-            justifyContent: "center",
-          }}
-        >
-          <Button
-            variant={turboMode ? "primary" : "dark"}
-            onClick={() => setTurboMode(!turboMode)}
-            style={{ fontSize: "0.8rem", padding: "8px" }}
-          >
-            ⚡ {turboMode ? "TURBO" : "NORMAL"}
-          </Button>
-
-          {balance <= 0 && (
-            <Button
-              variant="danger"
-              onClick={claimFreeCoins}
-              style={{ fontSize: "0.7rem", padding: "8px" }}
-            >
-              🐟 Auxilio: +1000
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: "15px",
-          gap: "10px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ textAlign: "left" }}>
-          <span style={{ fontSize: "0.7rem", opacity: 0.8 }}>Total Bet:</span>
-          <h3
-            style={{
-              color: "var(--salmon)",
-              fontFamily: "var(--font-display)",
-              margin: 0,
-              fontSize: "1.1rem",
-            }}
-          >
-            🐾 {totalBet.toLocaleString()}
-          </h3>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            flex: "1",
-            justifyContent: "flex-end",
-          }}
-        >
-          {isAutoActive ? (
-            <Button
-              variant="danger"
-              onClick={stopAuto}
-              style={{ flex: 1, padding: "10px" }}
-            >
-              🛑 Stop ({remainingSpins})
-            </Button>
-          ) : (
-            <Button
-              variant="dark"
-              disabled={
-                isAnyReelSpinning || (balance < totalBet && freeSpinsLeft === 0)
-              }
-              onClick={() => startAuto(25)}
-              style={{ padding: "10px" }}
-            >
-              🔄 Auto
-            </Button>
-          )}
-
-          <Button
-            variant="primary"
-            disabled={
-              isAnyReelSpinning ||
-              isAutoActive ||
-              (balance < totalBet && freeSpinsLeft === 0)
-            }
-            onClick={spin}
-            style={{ padding: "12px 25px", fontSize: "1.2rem", flex: "2" }}
-          >
-            {isAnyReelSpinning
-              ? "..."
-              : freeSpinsLeft > 0
-              ? "🎰 FS"
-              : "🐾 PLAY"}
-          </Button>
-        </div>
-      </div>
+      <BetControls
+        betPerLine={betPerLine}
+        setBetPerLine={setBetPerLine}
+        activeLines={activeLines}
+        setActiveLines={setActiveLines}
+        turboMode={turboMode}
+        setTurboMode={setTurboMode}
+        isAnyReelSpinning={isAnyReelSpinning}
+        isAutoActive={isAutoActive}
+        remainingSpins={remainingSpins}
+        startAuto={startAuto}
+        stopAuto={stopAuto}
+        balance={balance}
+        totalBet={totalBet}
+        freeSpinsLeft={freeSpinsLeft}
+        spin={spin}
+      />
 
       <PaytableModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+
+      <GameOverDialog 
+        isOpen={showGameOver} 
+        onReset={handleRecargarMonedas} 
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 // src/components/games/slots/hooks/useSlotMachine.js
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useCasinoStore } from "../../../../store/useCasinoStore";
 import {
   generateSpinPositions,
@@ -28,7 +28,18 @@ export const useSlotMachine = () => {
   );
   const [explodingCoords, setExplodingCoords] = useState([]);
 
+  // 🌟 ESTADOS NUEVOS: Controladores del acumulador de bonus y disparador visual
+  const [currentBonusWin, setCurrentBonusWin] = useState(0);
+  const [justTriggeredBonus, setJustTriggeredBonus] = useState(false);
+
   const totalBet = betPerLine * activeLines;
+
+  // Resetear la alcancía global de giros gratis automáticamente si el contador de FS llega a 0
+  useEffect(() => {
+    if (freeSpinsLeft === 0) {
+      setCurrentBonusWin(0);
+    }
+  }, [freeSpinsLeft]);
 
   // 🛠️ Aplicar gravedad real: Vacía las celdas explotadas y desliza los iconos de arriba hacia abajo
   const applyCascadeGravity = (currentMatrix, explodedPairs) => {
@@ -134,8 +145,7 @@ export const useSlotMachine = () => {
         accumulatedPayout += evaluation.totalPayout;
         accumulatedFreeSpins += evaluation.freeSpinsWon;
 
-        // 🌟 CORREGIDO: Ahora extraemos TODAS las coordenadas que deben detonar,
-        // incluyendo los nodos de MULTIPLIER_SYMBOL y MULTIPLIER_PURGE de manera unificada.
+        // Extraemos TODAS las coordenadas que deben detonar de manera unificada.
         const coordsToExplode = [];
         evaluation.winningLines.forEach((line) => {
           line.coords.forEach(([r, c]) => {
@@ -145,7 +155,6 @@ export const useSlotMachine = () => {
           });
         });
 
-        // Si por algún desajuste no hay celdas para explotar, rompemos el ciclo para evitar bucles infinitos
         if (coordsToExplode.length === 0) {
           keepCascading = false;
           break;
@@ -164,7 +173,7 @@ export const useSlotMachine = () => {
           setTimeout(resolve, turboMode ? 450 : 600),
         );
 
-        // 2. DESAPARECER SÍMBOLOS: Vaciar estrictamente las celdas premiadas y multiplicadores.
+        // 2. DESAPARECER SÍMBOLOS: Vaciar estrictamente las celdas premiadas.
         setDisplayMatrix((prevMatrix) =>
           prevMatrix.map((row, rIdx) =>
             row.map((cell, cIdx) => {
@@ -178,23 +187,20 @@ export const useSlotMachine = () => {
           ),
         );
 
-        // Apagamos las coordenadas de explosión para limpiar CSS reactivo
         setExplodingCoords([]);
 
         await new Promise((resolve) =>
           setTimeout(resolve, turboMode ? 60 : 150),
         );
 
-        // 3. PROCESAR GRAVEDAD: Ahora los de arriba caerán correctamente ocupando los huecos vacíos
+        // 3. PROCESAR GRAVEDAD: Caída de símbolos superiores
         const updatedMatrix = applyCascadeGravity(
           currentTempMatrix,
           coordsToExplode,
         );
         
-        // Limpiamos los marcos dorados viejos para el desplome
         setWinData((prev) => (prev ? { ...prev, winningLines: [] } : null));
 
-        // Renderizamos la caída real de los símbolos sobrevivientes
         setDisplayMatrix(updatedMatrix);
         currentTempMatrix = updatedMatrix;
 
@@ -216,13 +222,22 @@ export const useSlotMachine = () => {
       };
     });
 
+    // 🌟 EVALUAR ACUMULADOS DE FREE SPINS Y DISPARADOR VISUAL
+    if (accumulatedFreeSpins > 0) {
+      setJustTriggeredBonus(true); // Enciende la bandera para gatillar la interfaz de festejo
+      if (adjustFreeSpins) {
+        adjustFreeSpins(accumulatedFreeSpins);
+      }
+    }
+
+    if (isFreeSpin || freeSpinsLeft > 0) {
+      // Si estamos consumiendo tiros gratis, acumulamos el pago total obtenido en las cascadas
+      setCurrentBonusWin((prev) => prev + accumulatedPayout);
+    }
+
     // --- PAGO FINAL UNIFICADO ---
     if (accumulatedPayout > 0) {
       adjustBalance(accumulatedPayout);
-    }
-
-    if (accumulatedFreeSpins > 0 && adjustFreeSpins) {
-      adjustFreeSpins(accumulatedFreeSpins);
     }
 
     addHistoryRecord({
@@ -257,6 +272,9 @@ export const useSlotMachine = () => {
     spin,
     freeSpinsLeft,
     explodingCoords,
+    currentBonusWin,        // 🌟 Expuesto para pintar en la barra de bonus acumulada
+    justTriggeredBonus,     // 🌟 Expuesto para disparar el Overlay negro de festejo
+    setJustTriggeredBonus,  // 🌟 Expuesto para apagar el festejo tras consumirse
     isAnyReelSpinning: spinning.some((r) => r),
   };
 };

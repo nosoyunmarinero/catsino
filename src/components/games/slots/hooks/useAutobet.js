@@ -1,50 +1,82 @@
 // src/components/games/slots/hooks/useAutobet.js
 import { useState, useEffect, useRef } from 'react';
 
-export const useAutobet = (spinFunction, isSpinning, balance, totalBet) => {
+export const useAutobet = (spin, isAnyReelSpinning, balance, totalBet, winData) => {
   const [isAutoActive, setIsAutoActive] = useState(false);
   const [remainingSpins, setRemainingSpins] = useState(0);
-  const [stopOnBigWin, setStopOnBigWin] = useState(false);
   
-  const isSpinningRef = useRef(isSpinning);
-  isSpinningRef.current = isSpinning;
+  // Guardamos referencias actualizadas para evitar re-ejecuciones molestas de los useEffect
+  const spinRef = useRef(spin);
+  const balanceRef = useRef(balance);
+  const totalBetRef = useRef(totalBet);
+  const winDataRef = useRef(winData);
 
-  const startAuto = (spins) => {
-    setRemainingSpins(spins);
+  useEffect(() => {
+    spinRef.current = spin;
+    balanceRef.current = balance;
+    totalBetRef.current = totalBet;
+    winDataRef.current = winData;
+  }, [spin, balance, totalBet, winData]);
+
+  const startAuto = (spinsCount) => {
+    if (balance < totalBet) return;
+    setRemainingSpins(spinsCount);
     setIsAutoActive(true);
   };
 
   const stopAuto = () => {
-    setRemainingSpins(0);
     setIsAutoActive(false);
+    setRemainingSpins(0);
   };
 
+  // Efecto principal: Se dispara CADA VEZ que los rodillos cambian de estado (Giran o Paran)
   useEffect(() => {
-    if (!isAutoActive || remainingSpins <= 0 || balance < totalBet) {
-      if (isAutoActive) stopAuto();
+    // Si el autobet no está encendido, o los rodillos se están moviendo físicamente, no hacemos nada.
+    if (!isAutoActive || isAnyReelSpinning) return;
+
+    // Control de paradas obligatorias por falta de giros disponibles
+    if (remainingSpins !== Infinity && remainingSpins <= 0) {
+      stopAuto();
       return;
     }
 
-    // Esperar a que el reel se detenga antes de mandar el siguiente gatillazo
-    if (!isSpinningRef.current) {
-      const timer = setTimeout(() => {
-        spinFunction().then(success => {
-          if (success) {
-            setRemainingSpins(prev => prev - 1);
-          } else {
-            stopAuto();
-          }
-        });
-      }, 600); // Pequeña pausa dramática entre spins automáticos
+    // Calcular el retraso según el resultado del tiro actual
+    let delay = 400; // 0.4 segundos si no se ganó nada (giro rápido)
 
-      return () => clearTimeout(timer);
+    // Si winData existe y el pago total acumulado de las cascadas es mayor a cero
+    if (winDataRef.current && winDataRef.current.totalPayout > 0) {
+      delay = 2800; // 2.8 segundos de pausa para que el jugador celebre y vea el cartel de WinOverlay
     }
-  }, [isAutoActive, remainingSpins, isSpinning, balance, totalBet, spinFunction]);
+
+    // Programar el siguiente tiro automático con el retraso calculado
+    const timer = setTimeout(async () => {
+      // Validar saldo antes de gatillar
+      if (balanceRef.current < totalBetRef.current) {
+        stopAuto();
+        return;
+      }
+
+      // Restar un giro del contador (excepto si seleccionó infinitos)
+      if (remainingSpins !== Infinity) {
+        setRemainingSpins((prev) => prev - 1);
+      }
+
+      // Ejecutar el giro físico en los rodillos
+      const success = await spinRef.current();
+      if (!success) {
+        stopAuto();
+      }
+    }, delay);
+
+    return () => clearTimeout(timer);
+
+    // Muy importante: Escuchamos el cambio de 'isAnyReelSpinning' para saber cuándo terminó la cascada
+  }, [isAutoActive, isAnyReelSpinning, remainingSpins]);
 
   return {
     isAutoActive,
     remainingSpins,
     startAuto,
-    stopAuto
+    stopAuto,
   };
 };
