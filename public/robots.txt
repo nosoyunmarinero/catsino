@@ -1,0 +1,13 @@
+# https://www.robotstxt.org/robotstxt.html
+
+# 🤖 Permitir que todos los buscadores (Google, Bing, Yahoo) indexen Catsino
+User-agent: *
+Allow: /
+
+# Evitar que los bots indexen carpetas de configuración o archivos internos (opcional/buena práctica)
+Disallow: /_next/
+Disallow: /node_modules/
+Disallow: /README.md
+
+# Enlace al mapa del sitio para acelerar la indexación en el futuro
+Sitemap: https://nosoyunmarinero.github.io/francis-portfolio-frontend/sitemap.xml

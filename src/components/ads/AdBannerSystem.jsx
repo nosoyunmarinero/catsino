@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "./AdBannerSystem.css";
 
 export function AdBannerSystem() {
+  // 1. Mantenemos showAd en false por ahora para que no intente cargar scripts externos
   const [showAd, setShowAd] = useState(false);
   const [showNotice, setShowNotice] = useState(false);
   const [adCountdown, setAdCountdown] = useState(5);
@@ -13,13 +14,17 @@ export function AdBannerSystem() {
   const interstitialRef = useRef(null);
 
   useEffect(() => {
-    // 1. El banner inferior se activa a los 10 segundos
+    /* ====================================================================
+       DESACTIVADO TEMPORALMENTE (Para cuando tengas el dominio propio)
+       ====================================================================
+    
+    // El banner inferior se activa a los 10 segundos
     const adTimer = setTimeout(() => {
       setShowAd(true);
     }, 10000);
 
-    // 2. El modal publicitario salta cada 5 minutos
-    const FIVE_MINUTES = 5 * 60 * 1000;
+    // El modal publicitario salta cada 5 minutos
+    const FIVE_MINUTES = 5 * 60 * 1000; 
     const noticeTimer = setInterval(() => {
       setAdCountdown(5);
       setIsAdLoading(true);
@@ -29,41 +34,41 @@ export function AdBannerSystem() {
     return () => {
       clearTimeout(adTimer);
       clearInterval(noticeTimer);
-      if (countdownIntervalRef.current)
-        clearInterval(countdownIntervalRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };
+    
+       ==================================================================== */
   }, []);
 
-  // 🌟 INYECCIÓN REAL DE MONETAG: Banner Inferior
+  // 🌟 MONETAG: Script del Banner Inferior (Comentado)
   useEffect(() => {
     if (showAd && bannerRef.current) {
-      // Limpiamos por si acaso el contenedor antes de inyectar
       bannerRef.current.innerHTML = "";
 
       const script = document.createElement("script");
       script.setAttribute("data-cfasync", "false");
-      // CAMBIA ESTE ID por el Zone ID que te dé Monetag para el Banner:
-      script.src = "//thubanoa.com/1v?z=1234567";
+      // 📝 AQUÍ IRÁ TU ZONE ID DE MONETAG PARA EL BANNER INFERIOR:
+      // script.src = "//thubanoa.com/1v?z=TU_ZONE_ID_AQUÍ";
 
       bannerRef.current.appendChild(script);
     }
   }, [showAd]);
 
-  // 🌟 INYECCIÓN REAL DE MONETAG: Anuncio Interstitial en el Modal
+  // 🌟 MONETAG: Script del Interstitial en el Modal (Comentado)
   useEffect(() => {
     if (showNotice && isAdLoading && interstitialRef.current) {
       interstitialRef.current.innerHTML = "";
 
       const script = document.createElement("script");
       script.setAttribute("data-cfasync", "false");
-      // CAMBIA ESTE ID por el Zone ID que te dé Monetag para el Interstitial:
-      script.src = "//thubanoa.com/1v?z=7654321";
+      // 📝 AQUÍ IRÁ TU ZONE ID DE MONETAG PARA EL MODAL INTERSTITIAL:
+      // script.src = "//thubanoa.com/1v?z=TU_ZONE_ID_AQUÍ";
 
       interstitialRef.current.appendChild(script);
     }
   }, [showNotice, isAdLoading]);
 
-  // Lógica de la cuenta regresiva de 5 segundos
+  // Lógica de la cuenta regresiva del modal
   useEffect(() => {
     if (showNotice && isAdLoading) {
       countdownIntervalRef.current = setInterval(() => {
@@ -85,7 +90,7 @@ export function AdBannerSystem() {
 
   return (
     <>
-      {/* BANNER INFERIOR REAL */}
+      {/* BANNER INFERIOR (Estilo estático para desarrollo) */}
       <footer className="catsino-ad-wrapper">
         <div className="catsino-ad-container" ref={bannerRef}>
           {!showAd && (
@@ -96,7 +101,7 @@ export function AdBannerSystem() {
         </div>
       </footer>
 
-      {/* MODAL INTERSTITIAL REAL */}
+      {/* MODAL INTERSTITIAL (Oculto hasta que actives los timers de arriba) */}
       {showNotice && (
         <div className="ad-notice-overlay">
           <div className="ad-notice-content">
@@ -104,13 +109,12 @@ export function AdBannerSystem() {
               <div className="premium-ad-space">
                 <span className="ad-tag-modal">PREMIUM ADVERTISEMENT</span>
 
-                {/* Contenedor dinámico donde Monetag pintará el anuncio */}
                 <div
                   className="premium-ad-graphic"
                   ref={interstitialRef}
                   style={{ border: "none", background: "transparent" }}
                 >
-                  {/* Aquí adentro Monetag inyectará el spot publicitario real */}
+                  {/* Aquí inyectará Monetag el anuncio en el futuro */}
                 </div>
 
                 <div className="ad-countdown-badge">
