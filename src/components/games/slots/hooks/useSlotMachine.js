@@ -24,7 +24,7 @@ export const useSlotMachine = () => {
   const [currentPositions, setCurrentPositions] = useState([0, 0, 0, 0, 0]);
   const [winData, setWinData] = useState(null);
   const [displayMatrix, setDisplayMatrix] = useState(() =>
-    getResultMatrix([0, 0, 0, 0, 0]),
+    getResultMatrix([0, 0, 0, 0, 0])
   );
   const [explodingCoords, setExplodingCoords] = useState([]);
 
@@ -50,7 +50,7 @@ export const useSlotMachine = () => {
       // Filtrar los que NO explotaron en esta columna (de abajo hacia arriba)
       for (let row = 4; row >= 0; row--) {
         const isExploded = explodedPairs.some(
-          ([r, c]) => r === row && c === col,
+          ([r, c]) => r === row && c === col
         );
         if (!isExploded) {
           survivingSymbols.push(nextMatrix[row][col]);
@@ -65,7 +65,7 @@ export const useSlotMachine = () => {
           entryIndex++;
         } else {
           const allSymbolKeys = Object.keys(SYMBOLS).filter(
-            (k) => k !== "WILD" && k !== "SCATTER" && !k.startsWith("MULT_"),
+            (k) => k !== "WILD" && k !== "SCATTER" && !k.startsWith("MULT_")
           );
           const randomKey =
             allSymbolKeys[Math.floor(Math.random() * allSymbolKeys.length)];
@@ -102,7 +102,7 @@ export const useSlotMachine = () => {
     // Frenado de rodillos
     for (let i = 0; i < 5; i++) {
       await new Promise((resolve) =>
-        setTimeout(resolve, startDelay + i * stopInterval),
+        setTimeout(resolve, startDelay + i * stopInterval)
       );
 
       setCurrentPositions((prev) => {
@@ -136,7 +136,7 @@ export const useSlotMachine = () => {
       const evaluation = evaluateMatrix(
         currentTempMatrix,
         activeLines,
-        betPerLine,
+        betPerLine
       );
 
       if (evaluation.totalPayout > 0 || evaluation.freeSpinsWon > 0) {
@@ -162,15 +162,22 @@ export const useSlotMachine = () => {
 
         // 1. DISPARAR EXPLOSIÓN VISUAL Y SETEAR LÍNEAS GANADORAS
         setExplodingCoords(coordsToExplode);
+
+        // 🛡️ Parche temporal de desbordamiento en el objeto visual intermedio de cascada
+        const tempSafePayout =
+          accumulatedPayout > 0 && accumulatedPayout < 0.1
+            ? 0.1
+            : Math.round(accumulatedPayout * 10) / 10;
+
         setWinData({
           ...evaluation,
-          totalPayout: accumulatedPayout, 
+          totalPayout: tempSafePayout,
           freeSpinsWon: accumulatedFreeSpins,
         });
 
         // ⏱️ TIEMPO DE EXPLOSIÓN
         await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 450 : 600),
+          setTimeout(resolve, turboMode ? 450 : 600)
         );
 
         // 2. DESAPARECER SÍMBOLOS: Vaciar estrictamente las celdas premiadas.
@@ -178,27 +185,27 @@ export const useSlotMachine = () => {
           prevMatrix.map((row, rIdx) =>
             row.map((cell, cIdx) => {
               const wasExploded = coordsToExplode.some(
-                ([er, ec]) => er === rIdx && ec === cIdx,
+                ([er, ec]) => er === rIdx && ec === cIdx
               );
               return wasExploded
                 ? { label: "", name: "empty", id: `empty-${rIdx}-${cIdx}` }
                 : cell;
-            }),
-          ),
+            })
+          )
         );
 
         setExplodingCoords([]);
 
         await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 60 : 150),
+          setTimeout(resolve, turboMode ? 60 : 150)
         );
 
         // 3. PROCESAR GRAVEDAD: Caída de símbolos superiores
         const updatedMatrix = applyCascadeGravity(
           currentTempMatrix,
-          coordsToExplode,
+          coordsToExplode
         );
-        
+
         setWinData((prev) => (prev ? { ...prev, winningLines: [] } : null));
 
         setDisplayMatrix(updatedMatrix);
@@ -206,7 +213,7 @@ export const useSlotMachine = () => {
 
         // ⏱️ TIEMPO DE CAÍDA
         await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 650 : 1200),
+          setTimeout(resolve, turboMode ? 650 : 1200)
         );
       } else {
         keepCascading = false;
@@ -230,12 +237,22 @@ export const useSlotMachine = () => {
       }
     }
 
-    if (isFreeSpin || freeSpinsLeft > 0) {
-      // Si estamos consumiendo tiros gratis, acumulamos el pago total obtenido en las cascadas
-      setCurrentBonusWin((prev) => prev + accumulatedPayout);
+    // --- 🛡️ PAGO FINAL UNIFICADO CON PARCHE DE SEGURIDAD ANTIBUCLE ---
+    if (accumulatedPayout > 0 && accumulatedPayout < 0.1) {
+      accumulatedPayout = 0.1;
+    } else if (accumulatedPayout > 0) {
+      // Limpiamos errores binarios de flotantes a 1 solo decimal (ej: 0.1, 0.5, 1.2)
+      accumulatedPayout = Math.round(accumulatedPayout * 10) / 10;
     }
 
-    // --- PAGO FINAL UNIFICADO ---
+    if (isFreeSpin || freeSpinsLeft > 0) {
+      // Si estamos consumiendo tiros gratis, acumulamos el pago total seguro obtenido
+      setCurrentBonusWin((prev) => {
+        const nextBonus = prev + accumulatedPayout;
+        return Math.round(nextBonus * 10) / 10;
+      });
+    }
+
     if (accumulatedPayout > 0) {
       adjustBalance(accumulatedPayout);
     }
@@ -272,9 +289,9 @@ export const useSlotMachine = () => {
     spin,
     freeSpinsLeft,
     explodingCoords,
-    currentBonusWin,        // 🌟 Expuesto para pintar en la barra de bonus acumulada
-    justTriggeredBonus,     // 🌟 Expuesto para disparar el Overlay negro de festejo
-    setJustTriggeredBonus,  // 🌟 Expuesto para apagar el festejo tras consumirse
+    currentBonusWin, // 🌟 Expuesto para pintar en la barra de bonus acumulada
+    justTriggeredBonus, // 🌟 Expuesto para disparar el Overlay negro de festejo
+    setJustTriggeredBonus, // 🌟 Expuesto para apagar el festejo tras consumirse
     isAnyReelSpinning: spinning.some((r) => r),
   };
 };

@@ -16,7 +16,10 @@ export const SlotMachine = ({ onBack }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
-  
+
+  // 🌟 NUEVO ESTADO: Protege la pantalla contra disparos prematuros de Game Over mientras el hook asíncrono procesa cascadas
+  const [isProcessingTurn, setIsProcessingTurn] = useState(false);
+
   // Estado local para congelar la pantalla con la animación del aviso de Bonus
   const [showBonusTriggerAnim, setShowBonusTriggerAnim] = useState(false);
 
@@ -29,16 +32,38 @@ export const SlotMachine = ({ onBack }) => {
     spinning,
     displayMatrix,
     winData,
-    spin,
+    spin: originalSpin,
     isAnyReelSpinning,
     explodingCoords,
-    currentBonusWin,       // 🐾 Traemos el acumulador del hook
-    justTriggeredBonus,    // 🐾 Traemos el flag de activación
-    setJustTriggeredBonus
+    currentBonusWin,
+    justTriggeredBonus,
+    setJustTriggeredBonus,
   } = useSlotMachine();
 
+  // 🌟 INTERCEPTOR DE SPIN: Enciende las alertas de procesamiento de turno
+  const handleSpin = async () => {
+    setIsProcessingTurn(true);
+    const result = await originalSpin();
+    // Si el tiro no se ejecutó (ej. falta de saldo), apagamos el candado inmediatamente
+    if (result === false) {
+      setIsProcessingTurn(false);
+    }
+    return result;
+  };
+
+  // 🌟 Apagar el candado de procesamiento cuando las cascadas terminen y la animación de explosiones muera
+  useEffect(() => {
+    if (!isAnyReelSpinning && explodingCoords.length === 0) {
+      // Dejamos una pequeña tregua de tiempo para que Zustand asiente los balances actualizados
+      const treguaTimer = setTimeout(() => {
+        setIsProcessingTurn(false);
+      }, 150);
+      return () => clearTimeout(treguaTimer);
+    }
+  }, [isAnyReelSpinning, explodingCoords]);
+
   const { isAutoActive, remainingSpins, startAuto, stopAuto } = useAutobet(
-    spin,
+    handleSpin,
     isAnyReelSpinning,
     balance,
     totalBet,
@@ -49,15 +74,14 @@ export const SlotMachine = ({ onBack }) => {
   useEffect(() => {
     if (justTriggeredBonus) {
       setShowBonusTriggerAnim(true);
-      setJustTriggeredBonus(false); // Apagar flag interno
-      
-      // Auto-ocultar el cartel de celebración tras 3 segundos
+      setJustTriggeredBonus(false);
+
       const timer = setTimeout(() => {
         setShowBonusTriggerAnim(false);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [justTriggeredBonus]);
+  }, [justTriggeredBonus, setJustTriggeredBonus]);
 
   useEffect(() => {
     if (
@@ -77,27 +101,39 @@ export const SlotMachine = ({ onBack }) => {
     return () => clearTimeout(timer);
   }, [isAnyReelSpinning, explodingCoords, winData]);
 
+  // 🌟 EFECTO DE GAME OVER REESTRUCTURADO Y BLINDADO
   useEffect(() => {
-    const isPhysicallySpinning = spinning ? spinning.some(s => s === true) : false;
+    const isPhysicallySpinning = spinning
+      ? spinning.some((s) => s === true)
+      : false;
 
+    // Solo podemos evaluar la quiebra si la máquina NO está girando, NO está explotando y NO está procesando turnos internos asíncronos
     if (
-      balance === 0 &&
-      freeSpinsLeft === 0 &&
       !isAnyReelSpinning &&
-      !isPhysicallySpinning && 
-      explodingCoords.length === 0
+      !isPhysicallySpinning &&
+      explodingCoords.length === 0 &&
+      !isProcessingTurn
     ) {
-      const checkTimer = setTimeout(() => {
-        useCasinoStore.getState().balance === 0 && setShowGameOver(true);
-      }, 100);
+      // Consultamos directamente el estado fresco del Store de Zustand para evitar retrasos de renderizado de React
+      const currentStoreBalance = useCasinoStore.getState().balance;
 
-      if (isAutoActive) stopAuto();
-
-      return () => clearTimeout(checkTimer);
-    } else {
-      setShowGameOver(false);
+      if (currentStoreBalance === 0 && freeSpinsLeft === 0) {
+        setShowGameOver(true);
+        if (isAutoActive) stopAuto();
+      } else {
+        setShowGameOver(false);
+      }
     }
-  }, [balance, freeSpinsLeft, isAnyReelSpinning, spinning, explodingCoords, isAutoActive, stopAuto]);
+  }, [
+    balance,
+    freeSpinsLeft,
+    isAnyReelSpinning,
+    spinning,
+    explodingCoords,
+    isProcessingTurn,
+    isAutoActive,
+    stopAuto,
+  ]);
 
   const handleRecargarMonedas = () => {
     adjustBalance(1000);
@@ -140,13 +176,27 @@ export const SlotMachine = ({ onBack }) => {
             justifyContent: "center",
             alignItems: "center",
             borderRadius: "24px",
-            animation: "fadeIn 0.3s ease-out"
+            animation: "fadeIn 0.3s ease-out",
           }}
         >
-          <h1 style={{ color: "var(--gold)", fontSize: "3rem", margin: 0, textAlign: "center", textShadow: "0 0 20px #ffcc00" }}>
+          <h1
+            style={{
+              color: "var(--gold)",
+              fontSize: "3rem",
+              margin: 0,
+              textAlign: "center",
+              textShadow: "0 0 20px #ffcc00",
+            }}
+          >
             🎉 ¡FREE SPINS GANADOS! 🎉
           </h1>
-          <p style={{ color: "var(--cream)", fontSize: "1.5rem", marginTop: "10px" }}>
+          <p
+            style={{
+              color: "var(--cream)",
+              fontSize: "1.5rem",
+              marginTop: "10px",
+            }}
+          >
             Prepárate para las grandes ganancias
           </p>
         </div>
@@ -252,15 +302,23 @@ export const SlotMachine = ({ onBack }) => {
             display: "flex",
             justifyContent: "space-around",
             alignItems: "center",
-            fontWeight: "bold"
+            fontWeight: "bold",
           }}
         >
           <div style={{ fontSize: "1.1rem" }}>
-            🎰 GIROS RESTANTES: <span style={{ fontSize: "1.3rem" }}>{freeSpinsLeft}</span>
+            🎰 GIROS RESTANTES:{" "}
+            <span style={{ fontSize: "1.3rem" }}>{freeSpinsLeft}</span>
           </div>
-          <div style={{ borderLeft: "2px solid rgba(0,0,0,0.2)", height: "25px" }} />
+          <div
+            style={{ borderLeft: "2px solid rgba(0,0,0,0.2)", height: "25px" }}
+          />
           <div style={{ fontSize: "1.1rem" }}>
-            💰 GANANCIA ACUMULADA: <span style={{ fontSize: "1.3rem", fontFamily: "var(--font-display)" }}>🐾 {currentBonusWin.toLocaleString()}</span>
+            💰 GANANCIA ACUMULADA:{" "}
+            <span
+              style={{ fontSize: "1.3rem", fontFamily: "var(--font-display)" }}
+            >
+              🐾 {currentBonusWin.toLocaleString()}
+            </span>
           </div>
         </div>
       )}
@@ -280,15 +338,12 @@ export const SlotMachine = ({ onBack }) => {
         balance={balance}
         totalBet={totalBet}
         freeSpinsLeft={freeSpinsLeft}
-        spin={spin}
+        spin={handleSpin}
       />
 
       <PaytableModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
 
-      <GameOverDialog 
-        isOpen={showGameOver} 
-        onReset={handleRecargarMonedas} 
-      />
+      <GameOverDialog isOpen={showGameOver} onReset={handleRecargarMonedas} />
     </div>
   );
 };
