@@ -1,0 +1,276 @@
+/* src/components/ads/AdBannerSystem.css */
+
+/* --- CONTEDOR GENERAL ABAJO DEL SITIO --- */
+.catsino-ad-wrapper {
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 215, 0, 0.05);
+}
+
+/* --- ZONA ESPECÍFICA DEL BANNER (Adaptativo) --- */
+.catsino-ad-container {
+  width: 100%;
+  max-width: 728px; /* Tamaño estándar Leaderboard para PC */
+  height: 90px;
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease-in-out;
+}
+
+.catsino-ad-loading {
+  color: #444;
+  font-size: 0.8rem;
+  font-family: monospace;
+  letter-spacing: 1px;
+}
+
+.catsino-ad-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1f150f, #2c1e14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeInAd 0.5s ease-out;
+}
+
+.ad-tag {
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  font-size: 0.6rem;
+  color: var(--gold, #ffcc00);
+  opacity: 0.5;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.mock-ad-content {
+  color: var(--cream, #fff8e7);
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(0.75rem, 2.5vw, 1.1rem);
+  font-weight: bold;
+  text-align: center;
+  padding: 0 15px;
+}
+
+/* --- INTERSTITIAL DIALOG (MODAL) --- */
+.ad-notice-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10001;
+  backdrop-filter: blur(4px);
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.ad-notice-content {
+  background: #1a110a;
+  border: 3px solid var(--gold, #ffcc00);
+  border-radius: 20px;
+  padding: clamp(15px, 5vw, 30px);
+  max-width: 420px;
+  width: 100%;
+  max-height: 92vh; /* Evita desbordes verticales en pantallas cortas o teléfonos */
+  overflow-y: auto; /* Activa scroll interno limpio si es necesario */
+  text-align: center;
+  color: var(--cream, #fff8e7);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  box-sizing: border-box;
+  animation: scaleUpNotice 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ad-notice-content h3 {
+  color: var(--gold, #ffcc00);
+  font-family: var(--font-display), sans-serif;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: clamp(1.1rem, 5vw, 1.5rem);
+}
+
+.ad-notice-content p {
+  font-size: clamp(0.85rem, 3.5vw, 0.95rem);
+  line-height: 1.5;
+  opacity: 0.9;
+  text-align: justify;
+}
+
+.ad-notice-highlight {
+  color: var(--salmon, #ff6b6b);
+  font-weight: bold;
+  text-align: center !important;
+  margin: 12px 0 !important;
+}
+
+.ad-notice-btn {
+  background: var(--gold, #ffcc00);
+  color: #000;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: var(--font-display), sans-serif;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.ad-notice-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 204, 0, 0.3);
+}
+
+/* --- LOGICA DEL ANUNCIO PREMIUM INTERNO --- */
+.premium-ad-space {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.ad-tag-modal {
+  font-size: 0.65rem;
+  color: var(--gold, #ffcc00);
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  opacity: 0.7;
+}
+
+/* Recuadro del anuncio responsivo */
+.premium-ad-graphic {
+  width: 100%;
+  max-width: 300px; /* Clásico tamaño de anuncio cuadrado de Google */
+  height: clamp(140px, 40vh, 200px); /* Ajusta la altura dinámicamente */
+  background: #0d0805;
+  border: 2px dashed #443322;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8c725c;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.premium-ad-graphic span {
+  font-size: 0.75rem;
+  font-family: monospace;
+  margin-bottom: 8px;
+}
+
+.premium-ad-graphic p {
+  font-size: clamp(0.8rem, 3.5vw, 0.9rem) !important;
+  color: var(--cream, #fff8e7) !important;
+  font-weight: bold;
+  text-align: center !important;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Badge del contador (Estilo Streaming) */
+.ad-countdown-badge {
+  margin-top: 15px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--cream, #fff8e7);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  font-family: monospace;
+}
+
+/* Vista de agradecimiento */
+.ad-notice-thanks-view {
+  animation: fadeInAd 0.4s ease-out;
+  width: 100%;
+}
+
+/* --- ANIMACIONES --- */
+@keyframes fadeInAd {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleUpNotice {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* --- 📱 MEDIA QUERIES PARA MÓVILES (Resoluciones famosas e integraciones) --- */
+
+/* Ajustes para Smartphones (Tablets hacia abajo) */
+@media (max-width: 768px) {
+  .catsino-ad-container {
+    max-width: 320px; /* Pasa automáticamente a tamaño Banner Mobile estándar (320x50) */
+    height: 50px;
+  }
+}
+
+/* Celulares ultra compactos (iPhone SE / pantallas de 320px de ancho) */
+@media (max-width: 360px) {
+  .ad-notice-content {
+    padding: 15px 10px;
+    border-width: 2px;
+  }
+
+  .premium-ad-graphic {
+    max-width: 100%;
+    height: 140px;
+  }
+}
+
+/* Solución para pantallas horizontales cortas (Modo Landscape en celulares) */
+@media (max-height: 480px) {
+  .ad-notice-content {
+    padding: 12px 20px;
+    max-width: 480px; /* Lo ensancha un poco para aprovechar el layout horizontal */
+  }
+
+  .premium-ad-graphic {
+    height: 100px; /* Reduce el tamaño de la caja del anuncio para que no empuje el contador */
+    padding: 5px;
+  }
+
+  .premium-ad-graphic span {
+    display: none; /* Esconde los logs innecesarios en landscape */
+  }
+
+  .ad-notice-content p {
+    margin: 5px 0;
+  }
+}
