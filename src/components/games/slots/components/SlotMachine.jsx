@@ -83,22 +83,35 @@ export const SlotMachine = ({ onBack }) => {
     }
   }, [justTriggeredBonus, setJustTriggeredBonus]);
 
+// 🌟 EFECTO DE WIN OVERLAY CORREGIDO CON AUTO-CIERRE PARA EVITAR OVERLAP CONGELADO
   useEffect(() => {
     if (
       isAnyReelSpinning ||
       explodingCoords.length > 0 ||
       !winData ||
-      winData.totalPayout === 0
+      (winData.totalPayout === 0 && winData.freeSpinsWon === 0)
     ) {
       setShowOverlay(false);
       return;
     }
 
-    const timer = setTimeout(() => {
+    // Si hay un premio legítimo, se muestra tras 600ms
+    const showTimer = setTimeout(() => {
       setShowOverlay(true);
     }, 600);
 
-    return () => clearTimeout(timer);
+    // 🚨 PARCHE CRÍTICO: Si el premio incluye Free Spins, forzamos su cierre automático tras 4 segundos
+    let closeTimer;
+    if (winData.freeSpinsWon > 0) {
+      closeTimer = setTimeout(() => {
+        setShowOverlay(false);
+      }, 4600); // 600ms de espera + 4000ms de festejo en pantalla
+    }
+
+    return () => {
+      clearTimeout(showTimer);
+      if (closeTimer) clearTimeout(closeTimer);
+    };
   }, [isAnyReelSpinning, explodingCoords, winData]);
 
   // 🌟 EFECTO DE GAME OVER REESTRUCTURADO Y BLINDADO

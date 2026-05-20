@@ -1,22 +1,27 @@
 /* src/components/ads/AdBannerSystem.css */
 
-/* --- CONTEDOR GENERAL ABAJO DEL SITIO --- */
 .catzzino-ad-wrapper {
+  position: absolute; /* 🌟 CAMBIADO: Se clava al fondo sin empujar el layout del juego */
+  bottom: 0;
+  left: 0;
   width: 100%;
-  padding: 10px;
+  height: 85px; /* Altura controlada fija */
+  padding: 5px 10px;
   box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.2);
-  border-top: 1px solid rgba(255, 215, 0, 0.05);
+  background: rgba(11, 12, 16, 0.95); /* Fondo sólido para que no traslape visualmente si algo pasa por detrás */
+  backdrop-filter: blur(5px);
+  border-top: 2px solid rgba(255, 215, 0, 0.15);
+  z-index: 99; /* Por debajo de modales de bonus pero por encima del fondo base */
 }
 
 /* --- ZONA ESPECÍFICA DEL BANNER (Adaptativo) --- */
 .catzzino-ad-container {
   width: 100%;
-  max-width: 728px; /* Tamaño estándar Leaderboard para PC */
-  height: 90px;
+  max-width: 728px; 
+  height: 75px; /* Reducido ligeramente para dar aire al contenedor */
   background: #111;
   border: 1px solid #222;
   border-radius: 8px;

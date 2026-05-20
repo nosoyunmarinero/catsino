@@ -3,7 +3,8 @@
 /* --- BOTÓN FLOTANTE RESPONSIVO --- */
 .catzzino-support-btn {
   position: fixed;
-  bottom: 20px;
+  /* 🖥️ En PC el anuncio mide 85px de alto, así que subimos el botón para que flote encima */
+  bottom: 100px; 
   left: 20px;
   background: rgba(26, 17, 10, 0.9);
   color: var(--cream, #fff8e7);
@@ -40,7 +41,7 @@
   align-items: center;
   z-index: 10000;
   backdrop-filter: blur(4px);
-  padding: 15px; /* Margen de seguridad para móviles */
+  padding: 15px; 
   box-sizing: border-box;
 }
 
@@ -49,11 +50,11 @@
   background: #2c1e14;
   border: 4px solid var(--gold, #ffcc00);
   border-radius: 20px;
-  padding: clamp(15px, 5vw, 30px); /* Padding dinámico según pantalla */
+  padding: clamp(15px, 5vw, 30px); 
   width: 100%;
-  max-width: 380px; /* Tamaño máximo ideal */
-  max-height: 90vh; /* Evita que se salga verticalmente en pantallas cortas */
-  overflow-y: auto; /* Scroll interno si la pantalla es muy pequeña */
+  max-width: 380px; 
+  max-height: 90vh; 
+  overflow-y: auto; 
   text-align: center;
   position: relative;
   color: var(--cream, #fff8e7);
@@ -93,7 +94,7 @@
   text-decoration: none;
   font-weight: bold;
   font-size: clamp(0.8rem, 3.5vw, 0.95rem);
-  word-break: break-all; /* Evita romper el diseño si el link es largo */
+  word-break: break-all; 
 }
 
 .support-modal-link:hover {
@@ -103,7 +104,7 @@
 /* --- QR RESPONSIVO --- */
 .support-modal-image {
   width: 100%;
-  max-width: 160px; /* Ligeramente más compacto para pantallas compactas */
+  max-width: 160px; 
   height: auto;
   aspect-ratio: 1 / 1;
   border-radius: 12px;
@@ -132,7 +133,7 @@
   font-size: 0.85rem;
   font-weight: bold;
   transition: all 0.2s ease;
-  width: 80%; /* Ancho responsivo interno */
+  width: 80%; 
   box-sizing: border-box;
 }
 
@@ -141,10 +142,12 @@
   color: #000;
 }
 
-/* --- 📱 MEDIA QUERIES PARA MÓVILES EXTREMOS (Resoluciones famosas: iPhone SE, Mini, etc.) --- */
+/* --- 📱 MEDIA QUERIES PARA MÓVILES EXTREMOS --- */
 @media (max-width: 480px) {
   .catzzino-support-btn {
-    bottom: 12px;
+    /* 🌟 SOLUCIÓN CRÍTICA: En móviles el Ad wrapper mide 85px de alto. 
+       Al poner 95px, el botón se sienta exactamente 10px arriba del banner */
+    bottom: 95px; 
     left: 12px;
     padding: 8px 14px;
     font-size: 0.8rem;
@@ -156,7 +159,7 @@
   }
 
   .support-modal-image {
-    max-width: 130px; /* Reducimos el QR en teléfonos pequeños */
+    max-width: 130px; 
   }
 }
 
@@ -166,6 +169,6 @@
     padding: 15px;
   }
   .support-modal-image {
-    display: none; /* Escondemos el QR en landscape móvil para priorizar los links */
+    display: none; 
   }
 }
