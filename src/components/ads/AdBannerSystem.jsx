@@ -38,13 +38,13 @@ export function AdBannerSystem() {
     };
   }, []);
 
-  // 🌟 MONETAG: Banner Inferior (Formato In-Page Push Nativo y No Invasivo)
+  // 🌟 1. MONETAG: Banner Inferior (Formato In-Page Push Nativo)
   useEffect(() => {
     if (showAd && bannerRef.current) {
       bannerRef.current.innerHTML = "";
 
       const script = document.createElement("script");
-      script.dataset.zone = "11030474"; // 🔑 Tu Zone ID Real de In-Page Push
+      script.dataset.zone = "11030474"; // 🔑 ID exclusivo para el Footer
       script.src = "https://nap5k.com/tag.min.js";
       script.async = true;
 
@@ -52,14 +52,13 @@ export function AdBannerSystem() {
     }
   }, [showAd]);
 
-  // 🌟 MONETAG: Interstitial en el Modal
-  // (Nota: Usamos el mismo ID de formato banner para mantener la estética limpia dentro del popup)
+  // 🌟 2. MONETAG: Popup Interstitial Premium (Formato Vignette/Interstitial)
   useEffect(() => {
     if (showNotice && isAdLoading && interstitialRef.current) {
       interstitialRef.current.innerHTML = "";
 
       const script = document.createElement("script");
-      script.dataset.zone = "11030474"; // 🔑 Tu Zone ID Real
+      script.dataset.zone = "11030497"; // 🔑 ID exclusivo para el Modal Premium
       script.src = "https://nap5k.com/tag.min.js";
       script.async = true;
 
@@ -67,7 +66,7 @@ export function AdBannerSystem() {
     }
   }, [showNotice, isAdLoading]);
 
-  // Lógica de la cuenta regresiva del modal de 5 minutos
+  // Lógica de la cuenta regresiva del modal
   useEffect(() => {
     if (showNotice && isAdLoading) {
       countdownIntervalRef.current = setInterval(() => {
@@ -108,7 +107,7 @@ export function AdBannerSystem() {
               <div className="premium-ad-space">
                 <span className="ad-tag-modal">PREMIUM ADVERTISEMENT</span>
 
-                {/* Contenedor controlado por ref para inyectar el banner estático */}
+                {/* Contenedor controlado por ref para inyectar el banner premium */}
                 <div
                   className="premium-ad-graphic"
                   ref={interstitialRef}
