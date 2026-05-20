@@ -104,6 +104,8 @@ html, body {
   }
 }
 
+s
+
 h1, h2 {
   font-family: var(--heading);
   font-weight: 500;
@@ -146,4 +148,26 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+/* Base por defecto para la máquina (Monitores grandes) */
+.slot-cabinet {
+  max-width: 850px;
+  margin: 10px auto;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* 🍏 Ajustes responsivos para Laptops y MacBooks (De 1024px a 1439px) */
+@media (min-width: 1026px) {
+  #root {
+    padding: 20px 20px 100px 20px;
+  }
+
+  .slot-cabinet {
+    /* 🌟 Mantiene sus 850px de ancho y sus márgenes laterales intactos,
+       pero lo empuja verticalmente hacia arriba para separarlo del botón de soporte */
+    transform: translateY(-40px) !important; 
+    transform-origin: center center;
+    transition: transform 0.3s ease-in-out;
+  }
 }

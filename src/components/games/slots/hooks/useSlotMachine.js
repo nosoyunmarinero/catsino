@@ -24,52 +24,58 @@ export const useSlotMachine = () => {
   const [currentPositions, setCurrentPositions] = useState([0, 0, 0, 0, 0]);
   const [winData, setWinData] = useState(null);
   const [displayMatrix, setDisplayMatrix] = useState(() =>
-    getResultMatrix([0, 0, 0, 0, 0])
+    getResultMatrix([0, 0, 0, 0, 0]),
   );
   const [explodingCoords, setExplodingCoords] = useState([]);
-
-  // 🌟 ESTADOS NUEVOS: Controladores del acumulador de bonus y disparador visual
   const [currentBonusWin, setCurrentBonusWin] = useState(0);
   const [justTriggeredBonus, setJustTriggeredBonus] = useState(false);
 
   const totalBet = betPerLine * activeLines;
 
-  // Resetear la alcancía global de giros gratis automáticamente si el contador de FS llega a 0
   useEffect(() => {
     if (freeSpinsLeft === 0) {
       setCurrentBonusWin(0);
     }
   }, [freeSpinsLeft]);
 
-  // 🛠️ Aplicar gravedad real: Vacía las celdas explotadas y desliza los iconos de arriba hacia abajo
+  // Gravedad con inyección aleatoria de Wilds y multiplicadores (Efecto Adrenalina)
   const applyCascadeGravity = (currentMatrix, explodedPairs) => {
     const nextMatrix = currentMatrix.map((row) => [...row]);
 
     for (let col = 0; col < 5; col++) {
       const survivingSymbols = [];
-      // Filtrar los que NO explotaron en esta columna (de abajo hacia arriba)
       for (let row = 4; row >= 0; row--) {
         const isExploded = explodedPairs.some(
-          ([r, c]) => r === row && c === col
+          ([r, c]) => r === row && c === col,
         );
         if (!isExploded) {
           survivingSymbols.push(nextMatrix[row][col]);
         }
       }
 
-      // Rellenar desde abajo con los sobrevivientes, y los huecos de arriba con nuevos michis
       let entryIndex = 0;
       for (let row = 4; row >= 0; row--) {
         if (entryIndex < survivingSymbols.length) {
           nextMatrix[row][col] = survivingSymbols[entryIndex];
           entryIndex++;
         } else {
-          const allSymbolKeys = Object.keys(SYMBOLS).filter(
-            (k) => k !== "WILD" && k !== "SCATTER" && !k.startsWith("MULT_")
-          );
-          const randomKey =
-            allSymbolKeys[Math.floor(Math.random() * allSymbolKeys.length)];
-          nextMatrix[row][col] = SYMBOLS[randomKey];
+          const dice = Math.random();
+          let chosenSymbol;
+
+          if (dice < 0.02) {
+            chosenSymbol = SYMBOLS.WILD; // Bajado de 8% a 2% (Un comodín del cielo ahora es raro y valioso)
+          } else if (dice >= 0.02 && dice < 0.04) {
+            chosenSymbol = SYMBOLS.MULT_X2; // Bajado de 4% a 2%
+          } else {
+            // El 96% restante serán gatos normales que cortarán las rachas infinitas
+            const normalKeys = Object.keys(SYMBOLS).filter(
+              (k) => k !== "WILD" && k !== "SCATTER" && !k.startsWith("MULT_"),
+            );
+            const randomKey =
+              normalKeys[Math.floor(Math.random() * normalKeys.length)];
+            chosenSymbol = SYMBOLS[randomKey];
+          }
+          nextMatrix[row][col] = chosenSymbol;
         }
       }
     }
@@ -87,7 +93,6 @@ export const useSlotMachine = () => {
       adjustBalance(-totalBet);
     }
 
-    // Reset total al iniciar un tiro nuevo
     setWinData(null);
     setExplodingCoords([]);
 
@@ -99,10 +104,9 @@ export const useSlotMachine = () => {
 
     setSpinning([true, true, true, true, true]);
 
-    // Frenado de rodillos
     for (let i = 0; i < 5; i++) {
       await new Promise((resolve) =>
-        setTimeout(resolve, startDelay + i * stopInterval)
+        setTimeout(resolve, startDelay + i * stopInterval),
       );
 
       setCurrentPositions((prev) => {
@@ -126,27 +130,37 @@ export const useSlotMachine = () => {
       });
     }
 
-    // --- PROCESAMIENTO CONTROLADO DE CASCADA ---
+   // ==========================================================================
+    // BUCLE DE CASCADAS CORREGIDO (PREVIENE BUCLE INFINITO DE SCATTERS)
+    // ==========================================================================
     let cascadeStep = 0;
     let keepCascading = true;
     let accumulatedPayout = 0;
     let accumulatedFreeSpins = 0;
+    let bonusTriggeredInThisSpin = false; // Evita re-entrada infinita al bonus
 
-    while (keepCascading && cascadeStep < 3) {
-      const evaluation = evaluateMatrix(
-        currentTempMatrix,
-        activeLines,
-        betPerLine
-      );
+    while (keepCascading && cascadeStep < 4) {
+      const evaluation = evaluateMatrix(currentTempMatrix, activeLines, betPerLine);
+
+      // Si ya procesamos un bonus en este tiro, forzamos que no se vuelva a contar
+      if (bonusTriggeredInThisSpin) {
+        evaluation.freeSpinsWon = 0;
+        evaluation.triggerBonus = false;
+      }
 
       if (evaluation.totalPayout > 0 || evaluation.freeSpinsWon > 0) {
         cascadeStep++;
-
         accumulatedPayout += evaluation.totalPayout;
-        accumulatedFreeSpins += evaluation.freeSpinsWon;
+        
+        if (evaluation.freeSpinsWon > 0) {
+          accumulatedFreeSpins += evaluation.freeSpinsWon;
+          bonusTriggeredInThisSpin = true; // Bloqueo de seguridad activado
+        }
 
-        // Extraemos TODAS las coordenadas que deben detonar de manera unificada.
+        // Recolectamos TODAS las coordenadas que deben detonar
         const coordsToExplode = [];
+
+        // 1. Añadir coordenadas de líneas normales
         evaluation.winningLines.forEach((line) => {
           line.coords.forEach(([r, c]) => {
             if (!coordsToExplode.some(([er, ec]) => er === r && ec === c)) {
@@ -155,19 +169,30 @@ export const useSlotMachine = () => {
           });
         });
 
+        // 2. 🔥 SOLUCIÓN AL BUG: Forzar la explosión de los Scatters para que la gravedad los borre de la pantalla
+        if (evaluation.freeSpinsWon > 0) {
+          evaluation.winningLines.forEach((line) => {
+            if (line.lineId === 'SCATTER') {
+              line.coords.forEach(([r, c]) => {
+                if (!coordsToExplode.some(([er, ec]) => er === r && ec === c)) {
+                  coordsToExplode.push([r, c]);
+                }
+              });
+            }
+          });
+        }
+
+        // Si por alguna razón matemática extraña no hay coordenadas que explotar, salimos para evitar congelamiento
         if (coordsToExplode.length === 0) {
           keepCascading = false;
           break;
         }
 
-        // 1. DISPARAR EXPLOSIÓN VISUAL Y SETEAR LÍNEAS GANADORAS
         setExplodingCoords(coordsToExplode);
 
-        // 🛡️ Parche temporal de desbordamiento en el objeto visual intermedio de cascada
-        const tempSafePayout =
-          accumulatedPayout > 0 && accumulatedPayout < 0.1
-            ? 0.1
-            : Math.round(accumulatedPayout * 10) / 10;
+        const tempSafePayout = accumulatedPayout > 0 && accumulatedPayout < 0.1
+          ? 0.1
+          : Math.round(accumulatedPayout * 10) / 10;
 
         setWinData({
           ...evaluation,
@@ -175,86 +200,51 @@ export const useSlotMachine = () => {
           freeSpinsWon: accumulatedFreeSpins,
         });
 
-        // ⏱️ TIEMPO DE EXPLOSIÓN
-        await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 450 : 600)
-        );
+        // Espera de animación de explosión
+        await new Promise((resolve) => setTimeout(resolve, turboMode ? 450 : 600));
 
-        // 2. DESAPARECER SÍMBOLOS: Vaciar estrictamente las celdas premiadas.
+        // Vaciar celdas explotadas
         setDisplayMatrix((prevMatrix) =>
           prevMatrix.map((row, rIdx) =>
             row.map((cell, cIdx) => {
-              const wasExploded = coordsToExplode.some(
-                ([er, ec]) => er === rIdx && ec === cIdx
-              );
-              return wasExploded
-                ? { label: "", name: "empty", id: `empty-${rIdx}-${cIdx}` }
-                : cell;
+              const wasExploded = coordsToExplode.some(([er, ec]) => er === rIdx && ec === cIdx);
+              return wasExploded ? { label: "", name: "empty", id: `empty-${rIdx}-${cIdx}` } : cell;
             })
           )
         );
 
         setExplodingCoords([]);
+        await new Promise((resolve) => setTimeout(resolve, turboMode ? 60 : 150));
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 60 : 150)
-        );
-
-        // 3. PROCESAR GRAVEDAD: Caída de símbolos superiores
-        const updatedMatrix = applyCascadeGravity(
-          currentTempMatrix,
-          coordsToExplode
-        );
-
+        // Aplicar gravedad con la tómbola regulada y actualizar la matriz de control interno
+        const updatedMatrix = applyCascadeGravity(currentTempMatrix, coordsToExplode);
         setWinData((prev) => (prev ? { ...prev, winningLines: [] } : null));
-
         setDisplayMatrix(updatedMatrix);
         currentTempMatrix = updatedMatrix;
 
-        // ⏱️ TIEMPO DE CAÍDA
-        await new Promise((resolve) =>
-          setTimeout(resolve, turboMode ? 650 : 1200)
-        );
+        // Esperar a que caigan los nuevos símbolos antes de la siguiente evaluación
+        await new Promise((resolve) => setTimeout(resolve, turboMode ? 650 : 1200));
       } else {
         keepCascading = false;
       }
     }
 
-    // Asegurar limpieza final al terminar todas las cascadas
-    setWinData((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        winningLines: [],
-      };
-    });
+    setWinData((prev) => (prev ? { ...prev, winningLines: [] } : null));
 
-    // 🌟 EVALUAR ACUMULADOS DE FREE SPINS Y DISPARADOR VISUAL
     if (accumulatedFreeSpins > 0) {
-      setJustTriggeredBonus(true); // Enciende la bandera para gatillar la interfaz de festejo
-      if (adjustFreeSpins) {
-        adjustFreeSpins(accumulatedFreeSpins);
-      }
-    }
-
-    // --- 🛡️ PAGO FINAL UNIFICADO CON PARCHE DE SEGURIDAD ANTIBUCLE ---
-    if (accumulatedPayout > 0 && accumulatedPayout < 0.1) {
-      accumulatedPayout = 0.1;
-    } else if (accumulatedPayout > 0) {
-      // Limpiamos errores binarios de flotantes a 1 solo decimal (ej: 0.1, 0.5, 1.2)
-      accumulatedPayout = Math.round(accumulatedPayout * 10) / 10;
-    }
-
-    if (isFreeSpin || freeSpinsLeft > 0) {
-      // Si estamos consumiendo tiros gratis, acumulamos el pago total seguro obtenido
-      setCurrentBonusWin((prev) => {
-        const nextBonus = prev + accumulatedPayout;
-        return Math.round(nextBonus * 10) / 10;
-      });
+      setJustTriggeredBonus(true);
+      if (adjustFreeSpins) adjustFreeSpins(accumulatedFreeSpins);
     }
 
     if (accumulatedPayout > 0) {
+      accumulatedPayout = Math.round(accumulatedPayout * 10) / 10;
       adjustBalance(accumulatedPayout);
+    }
+
+    if (isFreeSpin || freeSpinsLeft > 0) {
+      setCurrentBonusWin(
+        (prev) => Math.round((prev + accumulatedPayout) * 10) / 10,
+      );
     }
 
     addHistoryRecord({
@@ -289,9 +279,9 @@ export const useSlotMachine = () => {
     spin,
     freeSpinsLeft,
     explodingCoords,
-    currentBonusWin, // 🌟 Expuesto para pintar en la barra de bonus acumulada
-    justTriggeredBonus, // 🌟 Expuesto para disparar el Overlay negro de festejo
-    setJustTriggeredBonus, // 🌟 Expuesto para apagar el festejo tras consumirse
+    currentBonusWin,
+    justTriggeredBonus,
+    setJustTriggeredBonus,
     isAnyReelSpinning: spinning.some((r) => r),
   };
 };
