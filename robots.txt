@@ -1,0 +1,22 @@
+# .──────────────────────────────────────────────────────────.
+# |        _    _   _                                        |
+# |    ___| |__| |_| |_ ___  _ _ _  ___                      |
+# |   |  _|  _  |  _  |  _ || | | || . |                     |
+# |   |___|_| |_|_| |_|___||_____||___|                      |
+# |                                                          |
+# |   🤖 Bienvenidos a CATZZINO Bot Control Center           |
+# |   https://catzzino.com                                   |
+# '──────────────────────────────────────────────────────────'
+
+# 🌟 SECCIÓN COMPORTAMIENTO GENERAL
+User-agent: *
+Allow: /
+
+# 🛑 SECCIÓN DE SEGURIDAD Y PRIVACIDAD
+Disallow: /README.md
+Disallow: /LICENSE
+Disallow: /package.json
+Disallow: /package-lock.json
+
+# 🗺️ MAPA DEL SITIO
+Sitemap: https://catzzino.com/sitemap.xml
