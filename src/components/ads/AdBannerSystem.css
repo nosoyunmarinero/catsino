@@ -1,38 +1,33 @@
 /* src/components/ads/AdBannerSystem.css */
 
 .catzzino-ad-wrapper {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  
-  min-height: 90px; 
+  height: 60px;
+  background: rgba(11, 12, 16, 0.98);
+  z-index: 100; /* Siempre arriba del juego */
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(11, 12, 16, 0.95);
-  z-index: 99;
+  border-top: 1px solid #333;
 }
 
 .catzzino-ad-container {
   width: 100%;
-  max-width: 728px;
-  
-  min-height: 90px; 
+  max-width: 320px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  overflow: visible; 
-  position: relative;
-
+  overflow: hidden;
 }
 
 .catzzino-ad-loading {
   color: #444;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-family: monospace;
-  letter-spacing: 1px;
 }
 
 .catzzino-ad-placeholder {
@@ -235,10 +230,8 @@
 
 /* Ajustes para Smartphones (Tablets hacia abajo) */
 @media (max-width: 768px) {
-  .catzzino-ad-container {
-    max-width: 320px; /* Pasa automáticamente a tamaño Banner Mobile estándar (320x50) */
-    height: 50px;
-  }
+  .catzzino-ad-wrapper { min-height: 55px; }
+  .catzzino-ad-container { height: 50px; }
 }
 
 /* Celulares ultra compactos (iPhone SE / pantallas de 320px de ancho) */

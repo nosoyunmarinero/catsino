@@ -1,37 +1,12 @@
 /* src/index.css */
 :root {
-  /* 🌟 Variable añadida para que funcione el brillo de la explosión */
   --gold: #ffd700;
-
   --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #16171d; /* Forzamos fondo oscuro por defecto estilo casino */
-  --border: #2e303a;
-  --code-bg: #1f2028;
-  --accent: #c084fc;
-  --accent-bg: rgba(192, 132, 252, 0.15);
-  --accent-border: rgba(192, 132, 252, 0.5);
-  --social-bg: rgba(47, 48, 58, 0.5);
-  --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px,
-    rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
-  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  --bg: #16171d;
+  font: 18px/145% system-ui, sans-serif;
   color-scheme: dark;
   color: var(--text);
   background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 15px; /* Reducción de fuente global para pantallas pequeñas */
-  }
 }
 
 html, body {
@@ -39,31 +14,27 @@ html, body {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden; /* 🚫 BLOQUEA el scroll global de la página */
+  overflow: hidden;
 }
 
-/* 💻 RESTRUCTURACIÓN ABSOLUTA DE #ROOT anti-scroll y anti-overlap */
 #root {
   width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  text-align: center;
-  
-  /* Usa Short Viewport Height para calcular la pantalla REAL sin barras de navegador */
   height: 100svh; 
-  min-height: 100svh;
-  
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Centrado vertical perfecto */
-  align-items: center;     /* Centrado horizontal perfecto */
+  justify-content: center;
+  align-items: center;
   box-sizing: border-box;
-  
-  /* 🚨 COLCHÓN CRÍTICO DE MONETAG: Espacio reservado para que el anuncio se renderice libremente */
-  padding: 10px 10px 90px 10px; 
+  /* 🚨 El padding inferior reserva espacio para el Banner de 60px + aire */
+  padding-bottom: 70px; 
   position: relative;
 }
 
+.slot-cabinet {
+  max-width: 850px;
+  width: 100%;
+  margin: 0 auto;
+}
 /* 🍏 Ajustes responsivos para Laptops y MacBooks (De 1024px a 1439px) */
 @media (min-width: 1024px) {
   #root {
@@ -148,26 +119,4 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
-}
-
-/* Base por defecto para la máquina (Monitores grandes) */
-.slot-cabinet {
-  max-width: 850px;
-  margin: 10px auto;
-  transition: transform 0.3s ease-in-out;
-}
-
-/* 🍏 Ajustes responsivos para Laptops y MacBooks (De 1024px a 1439px) */
-@media (min-width: 1026px) {
-  #root {
-    padding: 20px 20px 100px 20px;
-  }
-
-  .slot-cabinet {
-    /* 🌟 Mantiene sus 850px de ancho y sus márgenes laterales intactos,
-       pero lo empuja verticalmente hacia arriba para separarlo del botón de soporte */
-    transform: translateY(-40px) !important; 
-    transform-origin: center center;
-    transition: transform 0.3s ease-in-out;
-  }
 }
