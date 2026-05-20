@@ -3,20 +3,25 @@
 /* --- BOTÓN FLOTANTE RESPONSIVO --- */
 .catzzino-support-btn {
   position: fixed;
-  /* 🌟 SIEMPRE 15px por encima de la altura del banner (60px) */
-  bottom: calc(60px + 15px); 
+  bottom: calc(180px + env(safe-area-inset-bottom)); /* más arriba, fuera de los botones del slot */
   left: 15px;
-  background: rgba(26, 17, 10, 0.9);
-  color: #fff8e7;
-  border: 2px solid #ffd700;
-  padding: 8px 14px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  z-index: 99; /* Debajo del banner para que el banner tape el botón si se tocan */
+  background: rgba(26, 17, 10, 0.85);
+  color: #5393ff;
+  border: 2px solid #5393ff;
+  padding: 8px 10px;
+  border-radius: 50%;        /* círculo */
+  font-size: 1.1rem;
+  line-height: 1;
+  z-index: 5;                /* por debajo del banner y de cualquier modal */
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 
 .catzzino-support-btn:hover {
   background: var(--gold, #ffcc00);
@@ -149,21 +154,11 @@
 }
 @media (max-width: 480px) {
   .catzzino-support-btn {
-    /* 🌟 SOLUCIÓN CRÍTICA: En móviles el Ad wrapper mide 85px de alto. 
-       Al poner 95px, el botón se sienta exactamente 10px arriba del banner */
-    bottom: 95px; 
+    bottom: calc(160px + env(safe-area-inset-bottom));
     left: 12px;
-    padding: 8px 14px;
-    font-size: 0.8rem;
-  }
-
-  .support-modal-content {
-    border-width: 3px;
-    padding: 20px 15px;
-  }
-
-  .support-modal-image {
-    max-width: 130px; 
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
   }
 }
 

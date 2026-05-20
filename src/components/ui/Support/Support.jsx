@@ -10,11 +10,12 @@ export function Support() {
   return (
     <>
       <button
-        className="catzzino-support-btn"
-        onClick={() => setShowModal(true)}
-      >
-        Support 💙
-      </button>
+  className="catzzino-support-btn"
+  onClick={() => setShowModal(true)}
+  title="Support 💙"
+>
+  💙
+</button>
 
       {showModal && (
         <div
