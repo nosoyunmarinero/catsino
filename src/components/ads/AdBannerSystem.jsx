@@ -17,7 +17,7 @@ export function AdBannerSystem() {
        🔥 TIMERS DE PRODUCCIÓN EN CATZZINO.COM
        ==================================================================== */
 
-    // El banner inferior se activa a los 10 segundos
+    // El banner inferior se activa sutilmente a los 10 segundos
     const adTimer = setTimeout(() => {
       setShowAd(true);
     }, 10000);
@@ -38,13 +38,13 @@ export function AdBannerSystem() {
     };
   }, []);
 
-  // 🌟 MONETAG: Banner Inferior (Traducción del script nativo)
+  // 🌟 MONETAG: Banner Inferior (Formato In-Page Push Nativo y No Invasivo)
   useEffect(() => {
     if (showAd && bannerRef.current) {
       bannerRef.current.innerHTML = "";
 
       const script = document.createElement("script");
-      script.dataset.zone = "11030474"; // 🔑 Tu Zone ID real de Monetag
+      script.dataset.zone = "11030474"; // 🔑 Tu Zone ID Real de In-Page Push
       script.src = "https://nap5k.com/tag.min.js";
       script.async = true;
 
@@ -53,14 +53,13 @@ export function AdBannerSystem() {
   }, [showAd]);
 
   // 🌟 MONETAG: Interstitial en el Modal
-  // (Nota: Si vas a usar el mismo Zone ID para ambos, se puede repetir.
-  // Si Monetag te da otro ID diferente para el formato pop/interstitial, cámbialo aquí abajo).
+  // (Nota: Usamos el mismo ID de formato banner para mantener la estética limpia dentro del popup)
   useEffect(() => {
     if (showNotice && isAdLoading && interstitialRef.current) {
       interstitialRef.current.innerHTML = "";
 
       const script = document.createElement("script");
-      script.dataset.zone = "11030474"; // 🔑 ID de Monetag para el Modal
+      script.dataset.zone = "11030474"; // 🔑 Tu Zone ID Real
       script.src = "https://nap5k.com/tag.min.js";
       script.async = true;
 
@@ -68,7 +67,7 @@ export function AdBannerSystem() {
     }
   }, [showNotice, isAdLoading]);
 
-  // Lógica de la cuenta regresiva del modal
+  // Lógica de la cuenta regresiva del modal de 5 minutos
   useEffect(() => {
     if (showNotice && isAdLoading) {
       countdownIntervalRef.current = setInterval(() => {
@@ -90,7 +89,7 @@ export function AdBannerSystem() {
 
   return (
     <>
-      {/* BANNER INFERIOR */}
+      {/* BANNER INFERIOR DEL CASINO */}
       <footer className="catzzino-ad-wrapper">
         <div className="catzzino-ad-container" ref={bannerRef}>
           {!showAd && (
@@ -101,7 +100,7 @@ export function AdBannerSystem() {
         </div>
       </footer>
 
-      {/* MODAL INTERSTITIAL */}
+      {/* MODAL INTERSTITIAL CONTROLADO */}
       {showNotice && (
         <div className="ad-notice-overlay">
           <div className="ad-notice-content">
@@ -109,7 +108,7 @@ export function AdBannerSystem() {
               <div className="premium-ad-space">
                 <span className="ad-tag-modal">PREMIUM ADVERTISEMENT</span>
 
-                {/* Contenedor controlado por ref para inyectar de forma segura */}
+                {/* Contenedor controlado por ref para inyectar el banner estático */}
                 <div
                   className="premium-ad-graphic"
                   ref={interstitialRef}
