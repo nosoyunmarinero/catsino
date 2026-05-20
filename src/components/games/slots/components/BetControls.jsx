@@ -41,6 +41,9 @@ export const BetControls = ({
     }
   }, []);
 
+  // Bloquea los controles de apuesta durante free spins
+  const isBetLocked = isAnyReelSpinning || isAutoActive || freeSpinsLeft > 0;
+
   const currentIndex = VALID_TOTAL_BETS.findIndex(
     (bet) => Math.abs(bet - totalBet) < 0.01
   );
@@ -74,7 +77,6 @@ export const BetControls = ({
     }
 
     numericValue = Math.round(numericValue * 10) / 10;
-
     setBetPerLine(numericValue / FIXED_LINES);
     setInputValue(numericValue.toString());
   };
@@ -84,14 +86,11 @@ export const BetControls = ({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.target.blur();
-    }
+    if (e.key === "Enter") e.target.blur();
   };
 
   return (
     <div style={{ marginTop: "15px" }}>
-      {/* 🌟 CONTAINER OPTIMIZADO: Usa flex-wrap y comportamiento responsivo mediante clases CSS globales o fallback elástico */}
       <div
         className="bet-controls-panel"
         style={{
@@ -101,27 +100,46 @@ export const BetControls = ({
           background: "rgba(0,0,0,0.4)",
           padding: "15px",
           borderRadius: "16px",
-          border: "1px solid rgba(255,215,0,0.15)",
+          border: `1px solid ${
+            freeSpinsLeft > 0 ? "rgba(255,215,0,0.5)" : "rgba(255,215,0,0.15)"
+          }`,
           alignItems: "center",
           justifyContent: "space-between",
+          opacity: freeSpinsLeft > 0 ? 0.7 : 1,
+          transition: "opacity 0.3s, border 0.3s",
         }}
       >
-        {/* Sección de la barra de Apuestas */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px", flex: "1 1 280px" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "5px",
+            flex: "1 1 280px",
+          }}
+        >
           <span
             style={{
               fontSize: "0.75rem",
-              color: "var(--gold)",
+              color: freeSpinsLeft > 0 ? "var(--gold)" : "var(--gold)",
               letterSpacing: "1px",
-              textAlign: "left"
+              textAlign: "left",
             }}
           >
-            APUESTA POR GIRO (20 LÍNEAS)
+            {freeSpinsLeft > 0
+              ? "🔒 APUESTA CONGELADA (FREE SPINS)"
+              : "APUESTA POR GIRO (20 LÍNEAS)"}
           </span>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", width: "100%" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              width: "100%",
+            }}
+          >
             <button
-              disabled={isAnyReelSpinning || isAutoActive || currentIndex <= 0}
+              disabled={isBetLocked || currentIndex <= 0}
               onClick={handleDecrease}
               style={{
                 width: "40px",
@@ -131,19 +149,18 @@ export const BetControls = ({
                 border: "2px solid var(--gold)",
                 color: "var(--gold)",
                 fontSize: "1.5rem",
-                cursor: "pointer",
+                cursor: isBetLocked ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
-                opacity: currentIndex <= 0 || isAnyReelSpinning || isAutoActive ? 0.4 : 1,
+                opacity: isBetLocked || currentIndex <= 0 ? 0.4 : 1,
                 transition: "all 0.1s",
               }}
             >
               -
             </button>
 
-            {/* Input contenedor elástico */}
             <div
               style={{
                 flex: "1",
@@ -159,14 +176,21 @@ export const BetControls = ({
                 gap: "4px",
               }}
             >
-              <span style={{ fontFamily: "var(--font-display)", color: "var(--cream)", fontSize: "1.1rem", fontWeight: "bold" }}>
+              <span
+                style={{
+                  fontFamily: "var(--font-display)",
+                  color: "var(--cream)",
+                  fontSize: "1.1rem",
+                  fontWeight: "bold",
+                }}
+              >
                 🐾
               </span>
               <input
                 type="text"
                 inputMode="decimal"
                 value={inputValue}
-                disabled={isAnyReelSpinning || isAutoActive}
+                disabled={isBetLocked}
                 onChange={handleInputChange}
                 onBlur={(e) => validateAndApplyBet(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -182,12 +206,15 @@ export const BetControls = ({
                   outline: "none",
                   padding: 0,
                   margin: 0,
+                  cursor: isBetLocked ? "not-allowed" : "text",
                 }}
               />
             </div>
 
             <button
-              disabled={isAnyReelSpinning || isAutoActive || currentIndex >= VALID_TOTAL_BETS.length - 1}
+              disabled={
+                isBetLocked || currentIndex >= VALID_TOTAL_BETS.length - 1
+              }
               onClick={handleIncrease}
               style={{
                 width: "40px",
@@ -197,12 +224,15 @@ export const BetControls = ({
                 border: "2px solid var(--gold)",
                 color: "var(--gold)",
                 fontSize: "1.5rem",
-                cursor: "pointer",
+                cursor: isBetLocked ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
-                opacity: currentIndex >= VALID_TOTAL_BETS.length - 1 || isAnyReelSpinning || isAutoActive ? 0.4 : 1,
+                opacity:
+                  isBetLocked || currentIndex >= VALID_TOTAL_BETS.length - 1
+                    ? 0.4
+                    : 1,
                 transition: "all 0.1s",
               }}
             >
@@ -210,21 +240,27 @@ export const BetControls = ({
             </button>
 
             <button
-              disabled={isAnyReelSpinning || isAutoActive || totalBet === MAX_BET}
+              disabled={isBetLocked || totalBet === MAX_BET}
               onClick={handleMaxBet}
               style={{
                 padding: "11px 12px",
                 borderRadius: "8px",
-                background: totalBet === MAX_BET ? "#4a3600" : "linear-gradient(135deg, #ffcc00, #b38600)",
+                background:
+                  isBetLocked || totalBet === MAX_BET
+                    ? "#4a3600"
+                    : "linear-gradient(135deg, #ffcc00, #b38600)",
                 border: "none",
                 color: "#000",
                 fontFamily: "var(--font-display)",
                 fontWeight: "bold",
                 fontSize: "0.75rem",
-                cursor: "pointer",
+                cursor: isBetLocked ? "not-allowed" : "pointer",
                 letterSpacing: "0.5px",
-                boxShadow: totalBet === MAX_BET ? "none" : "0 2px 5px rgba(0,0,0,0.3)",
-                opacity: isAnyReelSpinning || isAutoActive ? 0.5 : 1,
+                boxShadow:
+                  isBetLocked || totalBet === MAX_BET
+                    ? "none"
+                    : "0 2px 5px rgba(0,0,0,0.3)",
+                opacity: isBetLocked ? 0.4 : 1,
                 flexShrink: 0,
               }}
             >
@@ -233,8 +269,14 @@ export const BetControls = ({
           </div>
         </div>
 
-        {/* ⚡ Contenedor del Botón Turbo Reparado */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: "1 1 auto" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flex: "1 1 auto",
+          }}
+        >
           <Button
             variant={turboMode ? "primary" : "dark"}
             onClick={() => setTurboMode(!turboMode)}
@@ -242,8 +284,8 @@ export const BetControls = ({
               fontSize: "0.8rem",
               padding: "10px 15px",
               height: "40px",
-              width: "100%", /* Se estira perfectamente ocupando su propia fila en móvil */
-              margin: 0,    /* 🌟 Eliminamos el marginTop problemático */
+              width: "100%",
+              margin: 0,
             }}
           >
             ⚡ {turboMode ? "TURBO" : "NORMAL"}
@@ -251,7 +293,6 @@ export const BetControls = ({
         </div>
       </div>
 
-      {/* Botones de acción inferiores (Autobet y Play) */}
       <div
         style={{
           display: "flex",
@@ -275,13 +316,17 @@ export const BetControls = ({
 
         <Button
           variant="primary"
-          disabled={isAnyReelSpinning || isAutoActive || (balance < totalBet && freeSpinsLeft === 0)}
+          disabled={
+            isAnyReelSpinning ||
+            isAutoActive ||
+            (balance < totalBet && freeSpinsLeft === 0)
+          }
           onClick={spin}
-          style={{ 
-            padding: "12px 20px", 
-            fontSize: "1.1rem", 
+          style={{
+            padding: "12px 20px",
+            fontSize: "1.1rem",
             flex: "2",
-            whiteSpace: "nowrap"
+            whiteSpace: "nowrap",
           }}
         >
           {isAnyReelSpinning ? "..." : freeSpinsLeft > 0 ? "🎰 FS" : "🐾 PLAY"}

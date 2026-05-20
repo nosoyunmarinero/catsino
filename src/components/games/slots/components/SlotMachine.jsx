@@ -16,12 +16,7 @@ export const SlotMachine = ({ onBack }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [showGameOver, setShowGameOver] = useState(false);
-
-  // 🌟 NUEVO ESTADO: Protege la pantalla contra disparos prematuros de Game Over mientras el hook asíncrono procesa cascadas
   const [isProcessingTurn, setIsProcessingTurn] = useState(false);
-
-  // Estado local para congelar la pantalla con la animación del aviso de Bonus
-  const [showBonusTriggerAnim, setShowBonusTriggerAnim] = useState(false);
 
   const {
     betPerLine,
@@ -36,25 +31,20 @@ export const SlotMachine = ({ onBack }) => {
     isAnyReelSpinning,
     explodingCoords,
     currentBonusWin,
-    justTriggeredBonus,
-    setJustTriggeredBonus,
+    showBonusAnim,
   } = useSlotMachine();
 
-  // 🌟 INTERCEPTOR DE SPIN: Enciende las alertas de procesamiento de turno
   const handleSpin = async () => {
     setIsProcessingTurn(true);
     const result = await originalSpin();
-    // Si el tiro no se ejecutó (ej. falta de saldo), apagamos el candado inmediatamente
     if (result === false) {
       setIsProcessingTurn(false);
     }
     return result;
   };
 
-  // 🌟 Apagar el candado de procesamiento cuando las cascadas terminen y la animación de explosiones muera
   useEffect(() => {
     if (!isAnyReelSpinning && explodingCoords.length === 0) {
-      // Dejamos una pequeña tregua de tiempo para que Zustand asiente los balances actualizados
       const treguaTimer = setTimeout(() => {
         setIsProcessingTurn(false);
       }, 150);
@@ -70,20 +60,6 @@ export const SlotMachine = ({ onBack }) => {
     winData
   );
 
-  // Efecto para capturar el disparo del Bonus y lanzar el festejo visual
-  useEffect(() => {
-    if (justTriggeredBonus) {
-      setShowBonusTriggerAnim(true);
-      setJustTriggeredBonus(false);
-
-      const timer = setTimeout(() => {
-        setShowBonusTriggerAnim(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [justTriggeredBonus, setJustTriggeredBonus]);
-
-// 🌟 EFECTO DE WIN OVERLAY CORREGIDO CON AUTO-CIERRE PARA EVITAR OVERLAP CONGELADO
   useEffect(() => {
     if (
       isAnyReelSpinning ||
@@ -95,17 +71,15 @@ export const SlotMachine = ({ onBack }) => {
       return;
     }
 
-    // Si hay un premio legítimo, se muestra tras 600ms
     const showTimer = setTimeout(() => {
       setShowOverlay(true);
     }, 600);
 
-    // 🚨 PARCHE CRÍTICO: Si el premio incluye Free Spins, forzamos su cierre automático tras 4 segundos
     let closeTimer;
     if (winData.freeSpinsWon > 0) {
       closeTimer = setTimeout(() => {
         setShowOverlay(false);
-      }, 4600); // 600ms de espera + 4000ms de festejo en pantalla
+      }, 4600);
     }
 
     return () => {
@@ -114,20 +88,17 @@ export const SlotMachine = ({ onBack }) => {
     };
   }, [isAnyReelSpinning, explodingCoords, winData]);
 
-  // 🌟 EFECTO DE GAME OVER REESTRUCTURADO Y BLINDADO
   useEffect(() => {
     const isPhysicallySpinning = spinning
       ? spinning.some((s) => s === true)
       : false;
 
-    // Solo podemos evaluar la quiebra si la máquina NO está girando, NO está explotando y NO está procesando turnos internos asíncronos
     if (
       !isAnyReelSpinning &&
       !isPhysicallySpinning &&
       explodingCoords.length === 0 &&
       !isProcessingTurn
     ) {
-      // Consultamos directamente el estado fresco del Store de Zustand para evitar retrasos de renderizado de React
       const currentStoreBalance = useCasinoStore.getState().balance;
 
       if (currentStoreBalance === 0 && freeSpinsLeft === 0) {
@@ -173,8 +144,8 @@ export const SlotMachine = ({ onBack }) => {
         boxSizing: "border-box",
       }}
     >
-      {/* PANTALLA EMERGENTE DE CELEBRACIÓN DE GIROS GRATIS */}
-      {showBonusTriggerAnim && (
+      {/* PANTALLA DE CELEBRACIÓN DE GIROS GRATIS — se apaga sola desde el hook */}
+      {showBonusAnim && (
         <div
           style={{
             position: "absolute",
@@ -215,7 +186,6 @@ export const SlotMachine = ({ onBack }) => {
         </div>
       )}
 
-      {/* Botones de navegación superiores */}
       <button
         onClick={onBack}
         style={{
@@ -302,7 +272,6 @@ export const SlotMachine = ({ onBack }) => {
 
       {showOverlay && <WinOverlay winData={winData} />}
 
-      {/* PANEL DE SEGUIMIENTO DE FREE SPINS CON ALCANCÍA ACUMULADA */}
       {freeSpinsLeft > 0 && (
         <div
           style={{

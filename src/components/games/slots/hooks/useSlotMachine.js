@@ -1,5 +1,4 @@
-// src/components/games/slots/hooks/useSlotMachine.js
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useCasinoStore } from "../../../../store/useCasinoStore";
 import {
   generateSpinPositions,
@@ -24,21 +23,35 @@ export const useSlotMachine = () => {
   const [currentPositions, setCurrentPositions] = useState([0, 0, 0, 0, 0]);
   const [winData, setWinData] = useState(null);
   const [displayMatrix, setDisplayMatrix] = useState(() =>
-    getResultMatrix([0, 0, 0, 0, 0]),
+    getResultMatrix([0, 0, 0, 0, 0])
   );
   const [explodingCoords, setExplodingCoords] = useState([]);
   const [currentBonusWin, setCurrentBonusWin] = useState(0);
-  const [justTriggeredBonus, setJustTriggeredBonus] = useState(false);
+  const [showBonusAnim, setShowBonusAnim] = useState(false);
+
+  // Refs para evitar stale closures en el useCallback
+  const betPerLineRef = useRef(betPerLine);
+  const activeLinesRef = useRef(activeLines);
+  const frozenBetRef = useRef(null);
+  const frozenLinesRef = useRef(null);
+
+  useEffect(() => {
+    betPerLineRef.current = betPerLine;
+  }, [betPerLine]);
+  useEffect(() => {
+    activeLinesRef.current = activeLines;
+  }, [activeLines]);
 
   const totalBet = betPerLine * activeLines;
 
   useEffect(() => {
     if (freeSpinsLeft === 0) {
       setCurrentBonusWin(0);
+      frozenBetRef.current = null;
+      frozenLinesRef.current = null;
     }
   }, [freeSpinsLeft]);
 
-  // Gravedad con inyección aleatoria de Wilds y multiplicadores (Efecto Adrenalina)
   const applyCascadeGravity = (currentMatrix, explodedPairs) => {
     const nextMatrix = currentMatrix.map((row) => [...row]);
 
@@ -46,7 +59,7 @@ export const useSlotMachine = () => {
       const survivingSymbols = [];
       for (let row = 4; row >= 0; row--) {
         const isExploded = explodedPairs.some(
-          ([r, c]) => r === row && c === col,
+          ([r, c]) => r === row && c === col
         );
         if (!isExploded) {
           survivingSymbols.push(nextMatrix[row][col]);
@@ -63,13 +76,12 @@ export const useSlotMachine = () => {
           let chosenSymbol;
 
           if (dice < 0.02) {
-            chosenSymbol = SYMBOLS.WILD; // Bajado de 8% a 2% (Un comodín del cielo ahora es raro y valioso)
+            chosenSymbol = SYMBOLS.WILD;
           } else if (dice >= 0.02 && dice < 0.04) {
-            chosenSymbol = SYMBOLS.MULT_X2; // Bajado de 4% a 2%
+            chosenSymbol = SYMBOLS.MULT_X2;
           } else {
-            // El 96% restante serán gatos normales que cortarán las rachas infinitas
             const normalKeys = Object.keys(SYMBOLS).filter(
-              (k) => k !== "WILD" && k !== "SCATTER" && !k.startsWith("MULT_"),
+              (k) => k !== "WILD" && k !== "SCATTER" && !k.startsWith("MULT_")
             );
             const randomKey =
               normalKeys[Math.floor(Math.random() * normalKeys.length)];
@@ -84,13 +96,25 @@ export const useSlotMachine = () => {
 
   const spin = useCallback(async () => {
     const isFreeSpin = freeSpinsLeft > 0;
-    if (spinning.some((r) => r) || (!isFreeSpin && balance < totalBet))
+
+    // Usar valores congelados durante free spins, frescos en spins normales
+    const currentBetPerLine =
+      isFreeSpin && frozenBetRef.current
+        ? frozenBetRef.current
+        : betPerLineRef.current;
+    const currentActiveLines =
+      isFreeSpin && frozenLinesRef.current
+        ? frozenLinesRef.current
+        : activeLinesRef.current;
+    const currentTotalBet = currentBetPerLine * currentActiveLines;
+
+    if (spinning.some((r) => r) || (!isFreeSpin && balance < currentTotalBet))
       return false;
 
     if (isFreeSpin) {
       if (adjustFreeSpins) adjustFreeSpins(-1);
     } else {
-      adjustBalance(-totalBet);
+      adjustBalance(-currentTotalBet);
     }
 
     setWinData(null);
@@ -106,7 +130,7 @@ export const useSlotMachine = () => {
 
     for (let i = 0; i < 5; i++) {
       await new Promise((resolve) =>
-        setTimeout(resolve, startDelay + i * stopInterval),
+        setTimeout(resolve, startDelay + i * stopInterval)
       );
 
       setCurrentPositions((prev) => {
@@ -130,19 +154,19 @@ export const useSlotMachine = () => {
       });
     }
 
-   // ==========================================================================
-    // BUCLE DE CASCADAS CORREGIDO (PREVIENE BUCLE INFINITO DE SCATTERS)
-    // ==========================================================================
     let cascadeStep = 0;
     let keepCascading = true;
     let accumulatedPayout = 0;
     let accumulatedFreeSpins = 0;
-    let bonusTriggeredInThisSpin = false; // Evita re-entrada infinita al bonus
+    let bonusTriggeredInThisSpin = false;
 
     while (keepCascading && cascadeStep < 4) {
-      const evaluation = evaluateMatrix(currentTempMatrix, activeLines, betPerLine);
+      const evaluation = evaluateMatrix(
+        currentTempMatrix,
+        currentActiveLines,
+        currentBetPerLine
+      );
 
-      // Si ya procesamos un bonus en este tiro, forzamos que no se vuelva a contar
       if (bonusTriggeredInThisSpin) {
         evaluation.freeSpinsWon = 0;
         evaluation.triggerBonus = false;
@@ -151,16 +175,14 @@ export const useSlotMachine = () => {
       if (evaluation.totalPayout > 0 || evaluation.freeSpinsWon > 0) {
         cascadeStep++;
         accumulatedPayout += evaluation.totalPayout;
-        
+
         if (evaluation.freeSpinsWon > 0) {
           accumulatedFreeSpins += evaluation.freeSpinsWon;
-          bonusTriggeredInThisSpin = true; // Bloqueo de seguridad activado
+          bonusTriggeredInThisSpin = true;
         }
 
-        // Recolectamos TODAS las coordenadas que deben detonar
         const coordsToExplode = [];
 
-        // 1. Añadir coordenadas de líneas normales
         evaluation.winningLines.forEach((line) => {
           line.coords.forEach(([r, c]) => {
             if (!coordsToExplode.some(([er, ec]) => er === r && ec === c)) {
@@ -169,10 +191,9 @@ export const useSlotMachine = () => {
           });
         });
 
-        // 2. 🔥 SOLUCIÓN AL BUG: Forzar la explosión de los Scatters para que la gravedad los borre de la pantalla
         if (evaluation.freeSpinsWon > 0) {
           evaluation.winningLines.forEach((line) => {
-            if (line.lineId === 'SCATTER') {
+            if (line.lineId === "SCATTER") {
               line.coords.forEach(([r, c]) => {
                 if (!coordsToExplode.some(([er, ec]) => er === r && ec === c)) {
                   coordsToExplode.push([r, c]);
@@ -182,7 +203,6 @@ export const useSlotMachine = () => {
           });
         }
 
-        // Si por alguna razón matemática extraña no hay coordenadas que explotar, salimos para evitar congelamiento
         if (coordsToExplode.length === 0) {
           keepCascading = false;
           break;
@@ -190,9 +210,10 @@ export const useSlotMachine = () => {
 
         setExplodingCoords(coordsToExplode);
 
-        const tempSafePayout = accumulatedPayout > 0 && accumulatedPayout < 0.1
-          ? 0.1
-          : Math.round(accumulatedPayout * 10) / 10;
+        const tempSafePayout =
+          accumulatedPayout > 0 && accumulatedPayout < 0.1
+            ? 0.1
+            : Math.round(accumulatedPayout * 10) / 10;
 
         setWinData({
           ...evaluation,
@@ -200,30 +221,39 @@ export const useSlotMachine = () => {
           freeSpinsWon: accumulatedFreeSpins,
         });
 
-        // Espera de animación de explosión
-        await new Promise((resolve) => setTimeout(resolve, turboMode ? 450 : 600));
+        await new Promise((resolve) =>
+          setTimeout(resolve, turboMode ? 450 : 600)
+        );
 
-        // Vaciar celdas explotadas
         setDisplayMatrix((prevMatrix) =>
           prevMatrix.map((row, rIdx) =>
             row.map((cell, cIdx) => {
-              const wasExploded = coordsToExplode.some(([er, ec]) => er === rIdx && ec === cIdx);
-              return wasExploded ? { label: "", name: "empty", id: `empty-${rIdx}-${cIdx}` } : cell;
+              const wasExploded = coordsToExplode.some(
+                ([er, ec]) => er === rIdx && ec === cIdx
+              );
+              return wasExploded
+                ? { label: "", name: "empty", id: `empty-${rIdx}-${cIdx}` }
+                : cell;
             })
           )
         );
 
         setExplodingCoords([]);
-        await new Promise((resolve) => setTimeout(resolve, turboMode ? 60 : 150));
+        await new Promise((resolve) =>
+          setTimeout(resolve, turboMode ? 60 : 150)
+        );
 
-        // Aplicar gravedad con la tómbola regulada y actualizar la matriz de control interno
-        const updatedMatrix = applyCascadeGravity(currentTempMatrix, coordsToExplode);
+        const updatedMatrix = applyCascadeGravity(
+          currentTempMatrix,
+          coordsToExplode
+        );
         setWinData((prev) => (prev ? { ...prev, winningLines: [] } : null));
         setDisplayMatrix(updatedMatrix);
         currentTempMatrix = updatedMatrix;
 
-        // Esperar a que caigan los nuevos símbolos antes de la siguiente evaluación
-        await new Promise((resolve) => setTimeout(resolve, turboMode ? 650 : 1200));
+        await new Promise((resolve) =>
+          setTimeout(resolve, turboMode ? 650 : 1200)
+        );
       } else {
         keepCascading = false;
       }
@@ -232,8 +262,12 @@ export const useSlotMachine = () => {
     setWinData((prev) => (prev ? { ...prev, winningLines: [] } : null));
 
     if (accumulatedFreeSpins > 0) {
-      setJustTriggeredBonus(true);
       if (adjustFreeSpins) adjustFreeSpins(accumulatedFreeSpins);
+      // Congela la apuesta del momento en que se ganaron los free spins
+      frozenBetRef.current = currentBetPerLine;
+      frozenLinesRef.current = currentActiveLines;
+      setShowBonusAnim(true);
+      setTimeout(() => setShowBonusAnim(false), 2000);
     }
 
     if (accumulatedPayout > 0) {
@@ -243,12 +277,12 @@ export const useSlotMachine = () => {
 
     if (isFreeSpin || freeSpinsLeft > 0) {
       setCurrentBonusWin(
-        (prev) => Math.round((prev + accumulatedPayout) * 10) / 10,
+        (prev) => Math.round((prev + accumulatedPayout) * 10) / 10
       );
     }
 
     addHistoryRecord({
-      bet: isFreeSpin ? 0 : totalBet,
+      bet: isFreeSpin ? 0 : currentTotalBet,
       payout: accumulatedPayout,
       win: accumulatedPayout > 0,
     });
@@ -257,9 +291,6 @@ export const useSlotMachine = () => {
   }, [
     spinning,
     balance,
-    totalBet,
-    activeLines,
-    betPerLine,
     turboMode,
     adjustBalance,
     addHistoryRecord,
@@ -280,8 +311,7 @@ export const useSlotMachine = () => {
     freeSpinsLeft,
     explodingCoords,
     currentBonusWin,
-    justTriggeredBonus,
-    setJustTriggeredBonus,
+    showBonusAnim,
     isAnyReelSpinning: spinning.some((r) => r),
   };
 };
